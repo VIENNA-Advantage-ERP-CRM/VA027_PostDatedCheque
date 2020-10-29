@@ -324,7 +324,7 @@ namespace ViennaAdvantage.Process
                             if (_payment.Save(trxName))
                             {
                                 //payment will get completed only if PaymentAllocate is generated.
-                                if (GenratePaymentAllocate(GetCtx(), Util.GetValueOfInt(_ds.Tables[0].Rows[i]["VA027_ChequeDetails_ID"]), _payment.GetC_Payment_ID(), Get_TrxName()))
+                                if (GenratePaymentAllocate(GetCtx(), Util.GetValueOfInt(_ds.Tables[0].Rows[i]["VA027_ChequeDetails_ID"]), _payment.GetC_Payment_ID(), _payment.Get_TrxName()))
                                 {
                                     _status = null;
                                     _status = _payment.CompleteIt();
@@ -453,7 +453,7 @@ namespace ViennaAdvantage.Process
                                 if (_payment.Save(trxName))
                                 {
                                     //payment will get completed only if PaymentAllocate is generated.
-                                    if (GenratePaymentAllocate(GetCtx(), Util.GetValueOfInt(_ds.Tables[0].Rows[i]["VA027_ChequeDetails_ID"]), _payment.GetC_Payment_ID(), Get_TrxName()))
+                                    if (GenratePaymentAllocate(GetCtx(), Util.GetValueOfInt(_ds.Tables[0].Rows[i]["VA027_ChequeDetails_ID"]), _payment.GetC_Payment_ID(), _payment.Get_TrxName()))
                                     {
                                         _status = null;
                                         _status = _payment.CompleteIt();
