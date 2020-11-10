@@ -63,6 +63,9 @@ namespace ViennaAdvantage.Process
                     return Msg.GetMsg(GetCtx(), "VA027_SelectPaymentDocType");
                 }
 
+                // create called first so that we can get detail of record whose payment is generated.
+                Create();
+                
                 Show();
 
                 if (_docType > 0)
@@ -81,7 +84,7 @@ namespace ViennaAdvantage.Process
                     }
                 }
                 DB.ExecuteQuery(_Sql.ToString(), null, Get_TrxName());
-                Create();
+                 
             }
 
             return "";
@@ -232,27 +235,35 @@ namespace ViennaAdvantage.Process
             StringBuilder sbRet = new StringBuilder();
             string _systemDate = _sysDate.Value.ToShortDateString();
             _Sql.Clear();
-            _Sql.Append(@"SELECT PDC.VA027_CheckDate, PDC.VA027_POSTDATEDCHECK_ID,PDC.DOCUMENTNO FROM VA027_PostDatedCheck PDC WHERE PDC.IsActive = 'Y' AND PDC.VA027_PAYMENTGENERATED='N' AND PDC.DOCSTATUS ='CO' AND PDC.VA027_MULTICHEQUE='N' AND PDC.AD_Client_ID = " + GetCtx().GetAD_Client_ID() + " AND PDC.AD_Org_ID=" + GetCtx().GetAD_Org_ID());
             DataSet _date = new DataSet();
+            _Sql.Append(@"SELECT PDC.VA027_CheckDate, PDC.VA027_POSTDATEDCHECK_ID,PDC.DOCUMENTNO FROM VA027_PostDatedCheck PDC WHERE PDC.IsActive = 'Y' AND PDC.VA027_PAYMENTGENERATED='N' AND PDC.VA027_MULTICHEQUE='N' AND PDC.DOCSTATUS IN('CO','CL') AND PDC.AD_Client_ID = " + GetCtx().GetAD_Client_ID());
+            if (GetAD_Org_ID() > 0)
+            {
+                _Sql.Append(" AND PDC.AD_Org_ID = " + GetAD_Org_ID());
+            }
+           
             _date = DB.ExecuteDataset(_Sql.ToString(), null, Get_TrxName());
             for (int i = 0; i < _date.Tables[0].Rows.Count; i++)
             {
-                DateTime _checkdt = Convert.ToDateTime(_date.Tables[0].Rows[i]["VA027_CheckDate"]);
-                int record_ID = Util.GetValueOfInt(_date.Tables[0].Rows[i]["VA027_PostDatedCheck_ID"]);
-                string _checkDate = _checkdt.ToShortDateString();
-                if (Convert.ToDateTime(_checkDate) <= Convert.ToDateTime(_systemDate)) //changes made by arpit
+                if (_date.Tables[0].Rows[i]["VA027_CheckDate"].ToString() != string.Empty)
                 {
-                    ViennaAdvantage.Process.VA027_GenPayment _genPayment = new ViennaAdvantage.Process.VA027_GenPayment();
-                    string result = _genPayment.GenratePaymentHdr(GetCtx(), record_ID, paymentDocumentTypeId, Get_TrxName());
-                    if (result == "E")
+                    DateTime _checkdt = Convert.ToDateTime(_date.Tables[0].Rows[i]["VA027_CheckDate"]);
+                    int record_ID = Util.GetValueOfInt(_date.Tables[0].Rows[i]["VA027_PostDatedCheck_ID"]);
+                    string _checkDate = _checkdt.ToShortDateString();
+                    if (Convert.ToDateTime(_checkDate) <= Convert.ToDateTime(_systemDate)) //changes made by arpit
                     {
-                        if (sbRet.Length != 0)
+                        ViennaAdvantage.Process.VA027_GenPayment _genPayment = new ViennaAdvantage.Process.VA027_GenPayment();
+                        string result = _genPayment.GenratePaymentHdr(GetCtx(), record_ID, paymentDocumentTypeId, Get_TrxName());
+                        if (result == "E")
                         {
-                            sbRet.Append(", " + Util.GetValueOfInt(_date.Tables[0].Rows[i]["DocumentNo"]));
-                        }
-                        else
-                        {
-                            sbRet.Append(Msg.GetMsg(GetCtx(), "VA027_PaymentsNotSaved") + Util.GetValueOfInt(_date.Tables[0].Rows[i]["DocumentNo"]));
+                            if (sbRet.Length != 0)
+                            {
+                                sbRet.Append(", " + Util.GetValueOfInt(_date.Tables[0].Rows[i]["DocumentNo"]));
+                            }
+                            else
+                            {
+                                sbRet.Append(Msg.GetMsg(GetCtx(), "VA027_PaymentsNotSaved") + Util.GetValueOfInt(_date.Tables[0].Rows[i]["DocumentNo"]));
+                            }
                         }
                     }
                 }
@@ -261,7 +272,12 @@ namespace ViennaAdvantage.Process
             _Sql.Clear();
             _date.Dispose();
 
-            _Sql.Append(@"SELECT PDC.VA027_CheckDate, PDC.VA027_POSTDATEDCHECK_ID,PDC.DOCUMENTNO FROM VA027_PostDatedCheck PDC WHERE PDC.IsActive = 'Y' AND PDC.VA027_PAYMENTGENERATED='N' AND PDC.DOCSTATUS ='CO' AND PDC.VA027_MULTICHEQUE='Y' AND PDC.AD_Client_ID = " + GetCtx().GetAD_Client_ID() + " AND PDC.AD_Org_ID=" + GetCtx().GetAD_Org_ID());
+
+            _Sql.Append(@"SELECT PDC.VA027_CheckDate, PDC.VA027_POSTDATEDCHECK_ID,PDC.DOCUMENTNO FROM VA027_PostDatedCheck PDC WHERE PDC.IsActive = 'Y' AND PDC.VA027_PAYMENTGENERATED='N' AND PDC.DOCSTATUS IN('CO','CL') AND PDC.VA027_MULTICHEQUE='Y' AND PDC.AD_Client_ID = " + GetCtx().GetAD_Client_ID());
+            if (GetAD_Org_ID() > 0)
+            {
+                _Sql.Append(" AND PDC.AD_Org_ID = " + GetAD_Org_ID());
+            }
             _date = DB.ExecuteDataset(_Sql.ToString(), null, Get_TrxName());
             for (int i = 0; i < _date.Tables[0].Rows.Count; i++)
             {
