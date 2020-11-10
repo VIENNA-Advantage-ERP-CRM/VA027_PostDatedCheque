@@ -62,7 +62,10 @@ namespace ViennaAdvantage.Process
                 {
                     return Msg.GetMsg(GetCtx(), "VA027_SelectPaymentDocType");
                 }
-               
+
+                // create called first so that we can get detail of record whose payment is generated.
+                Create();
+                
                 Show();
 
                 if (_docType > 0)
@@ -81,7 +84,7 @@ namespace ViennaAdvantage.Process
                     }
                 }
                 DB.ExecuteQuery(_Sql.ToString(), null, Get_TrxName());
-                  Create();
+                 
             }
 
             return "";
