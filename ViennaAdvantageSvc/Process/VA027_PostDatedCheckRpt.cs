@@ -101,6 +101,7 @@ namespace ViennaAdvantage.Process
                                       AD_ORG_ID,
                                       DOCUMENTNO,
                                       C_BPARTNER_ID,
+                                      C_BPARTNER_ID1,
                                       VA027_CHECKDATE,
                                       VA027_CHECKNO,
                                       VA027_PAYAMT,
@@ -118,6 +119,7 @@ namespace ViennaAdvantage.Process
                                   PDC.DOCUMENTNO,
                                   (SELECT name FROM c_bpartner WHERE c_bpartner_id=PDC.C_BPARTNER_ID
                                   ) AS C_BPARTNER_ID,
+                                  PDC.C_BPARTNER_ID AS C_BPARTNER_ID1,
                                   PDC.VA027_CHECKDATE ,
                                   PDC.VA027_CHECKNO ,
                                   PDC.VA027_PAYAMT,
@@ -147,6 +149,7 @@ namespace ViennaAdvantage.Process
                                       (SELECT NAME FROM C_BPARTNER WHERE C_BPARTNER_ID=PDC.C_BPARTNER_ID
                                       )
                                   END AS C_BPARTNER_ID,
+                                  PDC.C_BPARTNER_ID AS C_BPARTNER_ID1,
                                   CD.VA027_CHECKDATE ,
                                   CD.VA027_CHECKNO ,
                                   CD.VA027_CHEQUEAMOUNT AS VA027_PAYAMT,
@@ -165,7 +168,7 @@ namespace ViennaAdvantage.Process
                                 WHERE Pdc.Docstatus                        IN ('CO','CL')
                                 AND PDC.ISACTIVE                            ='Y'
                                 AND TO_DATE(CD.VA027_CHECKDATE,'dd-mm-yy') <= TO_DATE(SYSDATE,'dd-mm-yy')
-                                AND (PDC.VA027_PAYMENTGENERATED              ='N' OR NVL(CD.C_Payment_ID, 0) <=0)
+                                AND NVL(CD.C_Payment_ID, 0) <=0 
                                 AND PDC.VA027_MULTICHEQUE                   ='Y'
                                 UNION ALL
                                 SELECT PDC.AD_CLIENT_ID,
@@ -173,6 +176,7 @@ namespace ViennaAdvantage.Process
                                   PDC.DOCUMENTNO,
                                   (SELECT name FROM c_bpartner WHERE c_bpartner_id=PDC.C_BPARTNER_ID
                                   ) AS C_BPARTNER_ID,
+                                  PDC.C_BPARTNER_ID AS C_BPARTNER_ID1,
                                   PDC.VA027_CHECKDATE ,
                                   PDC.VA027_CHECKNO ,
                                   PDC.VA027_PAYAMT,
@@ -202,6 +206,7 @@ namespace ViennaAdvantage.Process
                                       (SELECT NAME FROM C_BPARTNER WHERE C_BPARTNER_ID=PDC.C_BPARTNER_ID
                                       )
                                   END AS C_BPARTNER_ID,
+                                  PDC.C_BPARTNER_ID AS C_BPARTNER_ID1,
                                   CD.VA027_CHECKDATE ,
                                   CD.VA027_CHECKNO ,
                                   CD.VA027_CHEQUEAMOUNT AS VA027_PAYAMT,
@@ -220,7 +225,7 @@ namespace ViennaAdvantage.Process
                                 WHERE Pdc.Docstatus           IN ('CO','CL')
                                 AND PDC.ISACTIVE               ='Y'
                                 AND cd.va027_discountingpdc    ='Y'
-                                AND (PDC.VA027_PAYMENTGENERATED ='N' OR NVL(CD.C_Payment_ID, 0) <=0)
+                                AND  NVL(CD.C_Payment_ID, 0) <=0
                                 AND PDC.VA027_MULTICHEQUE      ='Y'");
 
             return "";
