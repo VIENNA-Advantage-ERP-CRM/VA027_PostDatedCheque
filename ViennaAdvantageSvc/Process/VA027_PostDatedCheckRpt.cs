@@ -101,6 +101,7 @@ namespace ViennaAdvantage.Process
                                       AD_ORG_ID,
                                       DOCUMENTNO,
                                       C_BPARTNER_ID,
+                                      C_BPARTNER_ID1,
                                       VA027_CHECKDATE,
                                       VA027_CHECKNO,
                                       VA027_PAYAMT,
@@ -118,6 +119,7 @@ namespace ViennaAdvantage.Process
                                   PDC.DOCUMENTNO,
                                   (SELECT name FROM c_bpartner WHERE c_bpartner_id=PDC.C_BPARTNER_ID
                                   ) AS C_BPARTNER_ID,
+                                  PDC.C_BPARTNER_ID AS C_BPARTNER_ID1,
                                   PDC.VA027_CHECKDATE ,
                                   PDC.VA027_CHECKNO ,
                                   PDC.VA027_PAYAMT,
@@ -147,6 +149,7 @@ namespace ViennaAdvantage.Process
                                       (SELECT NAME FROM C_BPARTNER WHERE C_BPARTNER_ID=PDC.C_BPARTNER_ID
                                       )
                                   END AS C_BPARTNER_ID,
+                                  PDC.C_BPARTNER_ID AS C_BPARTNER_ID1,
                                   CD.VA027_CHECKDATE ,
                                   CD.VA027_CHECKNO ,
                                   CD.VA027_CHEQUEAMOUNT AS VA027_PAYAMT,
@@ -173,6 +176,7 @@ namespace ViennaAdvantage.Process
                                   PDC.DOCUMENTNO,
                                   (SELECT name FROM c_bpartner WHERE c_bpartner_id=PDC.C_BPARTNER_ID
                                   ) AS C_BPARTNER_ID,
+                                  PDC.C_BPARTNER_ID AS C_BPARTNER_ID1,
                                   PDC.VA027_CHECKDATE ,
                                   PDC.VA027_CHECKNO ,
                                   PDC.VA027_PAYAMT,
@@ -202,6 +206,7 @@ namespace ViennaAdvantage.Process
                                       (SELECT NAME FROM C_BPARTNER WHERE C_BPARTNER_ID=PDC.C_BPARTNER_ID
                                       )
                                   END AS C_BPARTNER_ID,
+                                  PDC.C_BPARTNER_ID AS C_BPARTNER_ID1,
                                   CD.VA027_CHECKDATE ,
                                   CD.VA027_CHECKNO ,
                                   CD.VA027_CHEQUEAMOUNT AS VA027_PAYAMT,
