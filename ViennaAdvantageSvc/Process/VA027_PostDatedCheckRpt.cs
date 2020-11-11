@@ -165,7 +165,7 @@ namespace ViennaAdvantage.Process
                                 WHERE Pdc.Docstatus                        IN ('CO','CL')
                                 AND PDC.ISACTIVE                            ='Y'
                                 AND TO_DATE(CD.VA027_CHECKDATE,'dd-mm-yy') <= TO_DATE(SYSDATE,'dd-mm-yy')
-                                AND PDC.VA027_PAYMENTGENERATED              ='N'
+                                AND (PDC.VA027_PAYMENTGENERATED              ='N' OR NVL(CD.C_Payment_ID, 0) <=0)
                                 AND PDC.VA027_MULTICHEQUE                   ='Y'
                                 UNION ALL
                                 SELECT PDC.AD_CLIENT_ID,
@@ -220,7 +220,7 @@ namespace ViennaAdvantage.Process
                                 WHERE Pdc.Docstatus           IN ('CO','CL')
                                 AND PDC.ISACTIVE               ='Y'
                                 AND cd.va027_discountingpdc    ='Y'
-                                AND PDC.VA027_PAYMENTGENERATED ='N'
+                                AND (PDC.VA027_PAYMENTGENERATED ='N' OR NVL(CD.C_Payment_ID, 0) <=0)
                                 AND PDC.VA027_MULTICHEQUE      ='Y'");
 
             return "";
