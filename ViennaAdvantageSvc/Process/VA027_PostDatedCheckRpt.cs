@@ -134,7 +134,7 @@ namespace ViennaAdvantage.Process
                                   '" + _showCreate + "', " + paymentDocumentTypeId + @"
                                 FROM VA027_POSTDATEDCHECK PDC
                                 WHERE PDC.DOCSTATUS                         IN ('CO','CL')
-                                AND TO_DATE(PDC.VA027_CHECKDATE,'dd-mm-yy') <= TO_DATE(SYSDATE,'dd-mm-yy')
+                                AND PDC.VA027_CHECKDATE <= SysDate 
                                 AND PDC.ISACTIVE                             ='Y'
                                 AND PDC.VA027_PAYMENTGENERATED               ='N'
                                 AND PDC.VA027_MULTICHEQUE                    ='N'
@@ -167,7 +167,7 @@ namespace ViennaAdvantage.Process
                                 ON CD.VA027_POSTDATEDCHECK_ID               = PDC.VA027_POSTDATEDCHECK_ID
                                 WHERE Pdc.Docstatus                        IN ('CO','CL')
                                 AND PDC.ISACTIVE                            ='Y'
-                                AND TO_DATE(CD.VA027_CHECKDATE,'dd-mm-yy') <= TO_DATE(SYSDATE,'dd-mm-yy')
+                                AND CD.VA027_CHECKDATE <= SysDate 
                                 AND NVL(CD.C_Payment_ID, 0) <=0 
                                 AND PDC.VA027_MULTICHEQUE                   ='Y'
                                 UNION ALL
