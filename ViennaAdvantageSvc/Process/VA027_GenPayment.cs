@@ -27,7 +27,8 @@ namespace ViennaAdvantage.Process
         private string documentno = "";
         private int paymentDocumentTypeId = 0;
         private int c_BankAccount_ID = 0;
-
+        private StringBuilder output = new StringBuilder();
+        ValueNamePair pp = null;
         protected override void Prepare()
         {
             ProcessInfoParameter[] para = GetParameter();
@@ -71,16 +72,30 @@ namespace ViennaAdvantage.Process
             else
                 return "PaymentNotGenerated";
 
-            if (res == "E")
+            if (res.Contains("E") && !res.Contains("F") && !res.Contains("N"))
+            {
                 return Msg.GetMsg(GetCtx(), "VA027_PaymentAlreadyGenerated");
-            else
-                if (res == "F")
-                return Msg.GetMsg(GetCtx(), "VA027_PaymentNotGenerated");
-            else
-             if (res.Equals("N"))
+            }
+            else if (res.Contains("F"))
+            {
+                if (String.IsNullOrEmpty(documentno))
+                {
+                    return Msg.GetMsg(GetCtx(), "VA027_PaymentNotGenerated");
+                }
+                else
+                {
+                    return Msg.GetMsg(GetCtx(), "VA027_FewPaymentGenerated") + " " + documentno;
+                }
+            }
+         
+            else if (res.Contains("N"))
+            {
                 return _msg;
+            }
             else
+            {
                 return Msg.GetMsg(GetCtx(), "VA027_PaymentGenerated") + " " + documentno;
+            }
         }
 
         /** Generate Payment for Single Cheque  */
@@ -92,14 +107,17 @@ namespace ViennaAdvantage.Process
             _payment.SetAD_Client_ID(_pdc.GetAD_Client_ID());
             _payment.SetAD_Org_ID(_pdc.GetAD_Org_ID());
             if (c_BankAccount_ID == 0)
+            {
                 _payment.SetC_BankAccount_ID(_pdc.GetC_BankAccount_ID());
+            }
             else
+            {
                 _payment.SetC_BankAccount_ID(c_BankAccount_ID);
-
+            }
             _payment.SetDateTrx(_sysDate);          // Set Today date in transaction Date.
             if (_pdc.IsVA027_DiscountingPDC())
             {
-                _payment.SetDateAcct(_sysDate);        // In Case of Discounting PDC set Today date in Account Date.      // _pdc.GetVA027_CheckDate()
+                _payment.SetDateAcct(_sysDate);        // In Case of Discounting PDC set Today date in Account Date.      
             }
             else
             {
@@ -161,23 +179,7 @@ namespace ViennaAdvantage.Process
             _payment.SetAccountNo(_pdc.GetVA027_AccountNo());
             _payment.SetA_Name(_pdc.GetVA027_AccountName());
             _payment.SetPDCType(_pdc.GetPDCType());
-            //_sql.Append("select docbasetype,c_doctype_id from C_doctype where c_doctype_id=" + _pdc.GetC_DocType_ID());
-            //_docBaseType = Util.GetValueOfString(DB.ExecuteScalar(_sql.ToString()));
             _sql.Clear();
-            //if (_docBaseType == "PDR")
-            //{
-            //    _sql.Append("SELECT C_DocType_ID FROM C_DocType WHERE DocBaseType='ARR' AND IsActive='Y' AND AD_Client_ID=" + ctx.GetAD_Client_ID());
-
-            //    int _docuType = Util.GetValueOfInt(DB.ExecuteScalar(_sql.ToString()));
-            //    _payment.SetC_DocType_ID(_docuType);
-            //    _sql.Clear();
-            //}
-            //else
-            //{
-            //    _sql.Append("SELECT C_DocType_ID FROM C_DocType WHERE DocBaseType='APP' AND AD_Client_ID=" + ctx.GetAD_Client_ID());
-            //    int _documentType = Util.GetValueOfInt(DB.ExecuteScalar(_sql.ToString(), null, trxName));
-            //    _payment.SetC_DocType_ID(_documentType);
-            //}
             _payment.SetC_DocType_ID(paymentDocumentTypeId);
             _exeStatus = _payment.GetVA009_ExecutionStatus();
             _payment.SetVA009_ExecutionStatus(_exeStatus = "I");
@@ -208,18 +210,24 @@ namespace ViennaAdvantage.Process
             }
             else
             {
-                documentno= _payment.GetDocumentNo();
+                documentno = _payment.GetDocumentNo();
                 return "Success";
             }
         }
 
-        /** Generate Payment for Multi Cheque Details  */
+        /// <summary>
+        ///  Generate Payment for Multi Cheque Details 
+        /// </summary>
+        /// <param name="ctx">context</param>
+        /// <param name="Record_Id">post dated check id</param>
+        /// <param name="paymentDocumentTypeId">payment document type id</param>
+        /// <param name="trxName">trx</param>
+        /// <returns>message</returns>
         public string GenratePaymentLine(Ctx ctx, int Record_Id, int paymentDocumentTypeId, Trx trxName)
         {
             int stdprecision = 0;
             Decimal surchargeAmt = Env.ZERO;
             Decimal TaxAmt = Env.ZERO;
-           
             StringBuilder _sql = new StringBuilder();
             MVA027PostDatedCheck _pdc = new MVA027PostDatedCheck(ctx, Record_Id, trxName);
             String sql = "SELECT * FROM VA027_ChequeDetails WHERE VA027_PostDatedCheck_ID= " + Record_Id + " AND NVL(C_Payment_ID,0)=0 ORDER BY Va027_CheckDate";
@@ -241,9 +249,13 @@ namespace ViennaAdvantage.Process
                             _payment.SetAD_Client_ID(Util.GetValueOfInt(_ds.Tables[0].Rows[i]["AD_Client_ID"]));
                             _payment.SetAD_Org_ID(Util.GetValueOfInt(_ds.Tables[0].Rows[i]["AD_Org_ID"]));
                             if (c_BankAccount_ID == 0)
+                            {
                                 _payment.SetC_BankAccount_ID(_pdc.GetC_BankAccount_ID());
+                            }
                             else
+                            {
                                 _payment.SetC_BankAccount_ID(c_BankAccount_ID);
+                            }
                             _payment.SetDateTrx(_sysDate);
                             _payment.SetDateAcct(_sysDate);                       //cd.GetVA027_CheckDate());
                             _payment.SetDescription(_pdc.GetVA027_Description());
@@ -257,7 +269,7 @@ namespace ViennaAdvantage.Process
                             {
                                 _payment.SetDescription(_pdc.GetVA027_Payee());
                             }
-                            //added by arpit
+
                             if (_pdc.GetC_BPartner_ID() > 0)
                             {
                                 _payment.SetC_BPartner_ID(_pdc.GetC_BPartner_ID());
@@ -300,24 +312,7 @@ namespace ViennaAdvantage.Process
 
                             }
 
-                            //_sql.Append("select docbasetype,c_doctype_id from C_doctype where c_doctype_id=" + _pdc.GetC_DocType_ID());
-                            //_docBaseType = Util.GetValueOfString(DB.ExecuteScalar(_sql.ToString()));
                             _sql.Clear();
-                            //if (_docBaseType == "PDR")
-                            //{
-                            //    _sql.Append("SELECT C_DocType_ID FROM C_DocType WHERE DocBaseType='ARR' AND AD_Client_ID=" + ctx.GetAD_Client_ID());
-
-                            //    int _docuType = Util.GetValueOfInt(DB.ExecuteScalar(_sql.ToString()));
-                            //    _payment.SetC_DocType_ID(_docuType);
-                            //    _sql.Clear();
-                            //}
-                            //else
-                            //{
-                            //    _sql.Append("SELECT C_DocType_ID FROM C_DocType WHERE DocBaseType='APP' AND AD_Client_ID=" + ctx.GetAD_Client_ID());
-                            //    int _documentType = Util.GetValueOfInt(DB.ExecuteScalar(_sql.ToString(), null, trxName));
-                            //    _payment.SetC_DocType_ID(_documentType);
-                            //    _sql.Clear();
-                            //}
                             _payment.SetC_DocType_ID(paymentDocumentTypeId);
                             _exeStatus = _payment.GetVA009_ExecutionStatus();
                             _payment.SetVA009_ExecutionStatus(_exeStatus = "I");
@@ -331,12 +326,18 @@ namespace ViennaAdvantage.Process
                                 }
                                 else
                                 {
-                                    return "N";
+                                    //return "N";
+                                    output.Append("N");
+                                    continue;
                                 }
                             }
                             else
                             {
-                                return "F";
+                                //return "F";
+                                pp = VLogger.RetrieveError();
+                                log.Info("Error Saving product save for PDC : " + pp.GetValue() + "  , Error Name : " + pp.GetName());
+                                output.Append("F");
+                                continue;
                             }
                             if (_status == "CO")
                             {
@@ -350,11 +351,13 @@ namespace ViennaAdvantage.Process
                                     if (!cqd.Save(trxName))
                                     {
                                         trxName.Rollback();
-                                        ValueNamePair pp = VLogger.RetrieveError();
+                                        pp = VLogger.RetrieveError();
                                         log.Info("Error Saving Chequedetails : " + pp.GetValue() + "  , Error Name : " + pp.GetName());
                                         _msg = Msg.GetMsg(ctx, "ChequedetailsNotSaved") + ", " + (pp != null ? pp.GetName() : "");
 
-                                        return "N";
+                                        //return "N";
+                                        output.Append("N");
+                                        continue;
                                     }
                                 }
                                 documentno += _payment.GetDocumentNo() + ",";
@@ -387,7 +390,7 @@ namespace ViennaAdvantage.Process
                                 {
                                     _payment.SetDescription(_pdc.GetVA027_Payee());
                                 }
-                                //added by arpit
+
                                 if (_pdc.GetC_BPartner_ID() > 0)
                                 {
                                     _payment.SetC_BPartner_ID(_pdc.GetC_BPartner_ID());
@@ -396,7 +399,7 @@ namespace ViennaAdvantage.Process
                                         _payment.SetC_BPartner_Location_ID(_pdc.GetC_BPartner_Location_ID());
                                     }
                                 }
-                                //end here
+
                                 _payment.SetC_Tax_ID(_pdc.GetC_Tax_ID());
                                 _payment.SetPayAmt(Math.Round(Util.GetValueOfDecimal(_ds.Tables[0].Rows[i]["VA027_ChequeAmount"]), 2));
                                 _payment.SetC_Currency_ID(_pdc.GetC_Currency_ID());
@@ -429,24 +432,7 @@ namespace ViennaAdvantage.Process
                                     _payment.SetTaxAmount(TaxAmt);
                                     _payment.Set_Value("SurchargeAmt", surchargeAmt);
                                 }
-                                //_sql.Append("select docbasetype,c_doctype_id from C_doctype where c_doctype_id=" + _pdc.GetC_DocType_ID());
-                                //_docBaseType = Util.GetValueOfString(DB.ExecuteScalar(_sql.ToString()));
                                 _sql.Clear();
-                                //if (_docBaseType == "PDR")
-                                //{
-                                //    _sql.Append("SELECT C_DocType_ID FROM C_DocType WHERE DocBaseType='ARR' AND AD_Client_ID=" + ctx.GetAD_Client_ID());
-
-                                //    int _docuType = Util.GetValueOfInt(DB.ExecuteScalar(_sql.ToString()));
-                                //    _payment.SetC_DocType_ID(_docuType);
-                                //    _sql.Clear();
-                                //}
-                                //else
-                                //{
-                                //    _sql.Append("SELECT C_DocType_ID FROM C_DocType WHERE DocBaseType='APP' AND AD_Client_ID=" + ctx.GetAD_Client_ID());
-                                //    int _documentType = Util.GetValueOfInt(DB.ExecuteScalar(_sql.ToString(), null, trxName));
-                                //    _payment.SetC_DocType_ID(_documentType);
-                                //    _sql.Clear();
-                                //}
                                 _payment.SetC_DocType_ID(paymentDocumentTypeId);
                                 _exeStatus = _payment.GetVA009_ExecutionStatus();
                                 _payment.SetVA009_ExecutionStatus(_exeStatus = "I");
@@ -460,12 +446,18 @@ namespace ViennaAdvantage.Process
                                     }
                                     else
                                     {
-                                        return "N";
+                                        //return "N";
+                                        output.Append("N");
+                                        continue;
                                     }
                                 }
                                 else
                                 {
-                                    return "F";
+                                    //return "F";
+                                    output.Append("F");
+                                    pp = VLogger.RetrieveError();
+                                    log.Info("Error Saving product save for PDC : " + pp.GetValue() + "  , Error Name : " + pp.GetName());
+                                    continue;
                                 }
                                 if (_status == "CO")
                                 {
@@ -479,11 +471,12 @@ namespace ViennaAdvantage.Process
                                         if (!cqd.Save(trxName))
                                         {
                                             trxName.Rollback();
-                                            ValueNamePair pp = VLogger.RetrieveError();
+                                            pp = VLogger.RetrieveError();
                                             log.Info("Error Saving Chequedetails : " + pp.GetValue() + "  , Error Name : " + pp.GetName());
                                             _msg = Msg.GetMsg(ctx, "ChequedetailsNotSaved") + ", " + (pp != null ? pp.GetName() : "");
-                                            return "N";
-
+                                            //return "N";
+                                            output.Append("N");
+                                            continue;
                                         }
                                     }
                                     documentno += _payment.GetDocumentNo() + ",";
@@ -491,14 +484,22 @@ namespace ViennaAdvantage.Process
                             }
                             else
                             {
-                                return "E";
+                                //return "E";
+                                output.Append("E");
+                                continue;
                             }
                         }
-                        else
+                        else if (String.IsNullOrEmpty(documentno)) // when payment generate against any check line then don't return F
                         {
-                            return "F";
+                            //return "F";
+                            output.Append("F");
+                            continue;
                         }
                     }
+
+                    // when payment generated against any Line then commit that record, 
+                    // bcz we have to rollback those payment whihc is not completed or partially created
+                    trxName.Commit();
                 }
             }
             if (Util.GetValueOfInt(DB.ExecuteScalar("SELECT Count(VA027_ChequeDetails_ID) From VA027_ChequeDetails Where VA027_PostDatedCheck_ID=" + Record_Id
@@ -513,7 +514,7 @@ namespace ViennaAdvantage.Process
                 }
             }
 
-            return "Success";
+            return String.IsNullOrEmpty(output.ToString()) ? "Success" : output.ToString();
         }
 
         /// <summary>
@@ -548,7 +549,7 @@ namespace ViennaAdvantage.Process
                     if (!_paymentAllocate.Save(trxName))
                     {
                         trxName.Rollback();
-                        ValueNamePair pp = VLogger.RetrieveError();
+                        pp = VLogger.RetrieveError();
                         log.Info("Error Occured while generating Payment Allocate : " + pp.GetValue() + "  , Error Name : " + pp.GetName());
                         _msg = Msg.GetMsg(ctx, "PaymentNotAllocated") + ", " + (pp != null ? pp.GetName() : "");
                         return false;
