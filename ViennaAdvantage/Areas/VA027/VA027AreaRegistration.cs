@@ -36,11 +36,11 @@ namespace VA027 //  Please replace namespace with prefix of your module..
             //style.Include("~/Areas/VA027/Contents/VA027_View.css");
 
 
-            script.Include("~/Areas/VA027/Scripts/model/Callouts.js");
+            //script.Include("~/Areas/VA027/Scripts/model/Callouts.js");
 
 
-            //style.Include("~/Areas/VA027/Contents/VA027.all.min.css");
-            //script.Include("~/Areas/VA027/Scripts/VA027.all.min.js");
+            style.Include("~/Areas/VA027/Contents/VA027.all.min.css");
+            script.Include("~/Areas/VA027/Scripts/VA027.all.min.js");
             /*-------------------------------------------------------
               Please replace "VA027" with prefix of your module..
              * 
