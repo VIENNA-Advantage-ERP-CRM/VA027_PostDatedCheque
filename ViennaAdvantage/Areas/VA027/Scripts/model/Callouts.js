@@ -102,12 +102,9 @@
         //var _client = Util.getValueOfInt(mTab.getValue("AD_Client_ID"));
         if (_bpartner != 0) {
             try {
-                var _qry = "SELECT VA009_PAYMENTMETHOD_ID FROM C_BPARTNER WHERE C_BPARTNER_ID=" + _bpartner;//+ " AND AD_Client_ID = " + _client;// + VIS.context.ctx["#AD_Client_ID"];
-                var ds = VIS.DB.executeDataSet(_qry);
-                if (ds.getTables()[0].getRows().length > 0) {
-                    mTab.setValue("VA009_PAYMENTMETHOD_ID", Util.getValueOfInt(ds.getTables()[0].getRows()[0].getCell("va009_paymentmethod_id")));
-
-                };
+                var paramString = _bpartner.toString();
+                var VA009_PAYMENTMETHOD_ID = VIS.dataContext.getJSONRecord("VA027/PDC/GetPaymentMethodFromBP", paramString);
+                mTab.setValue("VA009_PAYMENTMETHOD_ID", VA009_PAYMENTMETHOD_ID);
             }
             catch (err) {
                 this.log.severe(err.toString());
@@ -130,29 +127,22 @@
                 this.setCalloutActive(false);
                 return "";
             }
-            //********************************end here
             return "";
         }
         this.setCalloutActive(true);
         var _orderSchedule = Util.getValueOfInt(mTab.getValue("VA009_ORDERPAYSCHEDULE_ID"));
-        ///var _client = Util.getValueOfInt(mTab.getValue("AD_Client_ID"));
 
         if (_orderSchedule != 0) {
             try {
-                var _qry = "SELECT VA009_PAYMENTMETHOD_ID,DUEAMT,DUEDATE,DISCOUNTAMT,C_BPARTNER_ID FROM VA009_ORDERPAYSCHEDULE WHERE VA009_ORDERPAYSCHEDULE_ID=" + _orderSchedule;// + " AND AD_Client_ID = " + _client;//+ VIS.context.ctx["#AD_Client_ID"];
-                var ds = VIS.DB.executeDataSet(_qry);
-                if (ds.getTables()[0].getRows().length > 0) {
-                    var _payAmt = 0;
-                    var _dueAmt = Util.getValueOfDecimal(ds.getTables()[0].getRows()[0].getCell("dueamt"));
-                    var _discountAmt = Util.getValueOfDecimal(ds.getTables()[0].getRows()[0].getCell("discountamt"));
-                    _payAmt = _dueAmt - _discountAmt;
-                    mTab.setValue("VA027_PayAmt", _payAmt);
-                    mTab.setValue("VA009_PAYMENTMETHOD_ID", Util.getValueOfInt(ds.getTables()[0].getRows()[0].getCell("va009_paymentmethod_id")));
-                    mTab.setValue("VA027_DISCOUNTAMT", _discountAmt);
-                    mTab.setValue("VA027_TRXDATE", Util.getValueOfDate(ds.getTables()[0].getRows()[0].getCell("duedate")));
-                    mTab.setValue("DateAcct", Util.getValueOfDate(ds.getTables()[0].getRows()[0].getCell("duedate")));
-                    //mTab.setValue("C_Bpartner_ID", Util.getValueOfDate(ds.getTables()[0].getRows()[0].getCell("c_bpartner_id")));
-                };
+                var paramString = _orderSchedule.toString();
+                var GetVA009_OrderPayScheduleDetail = VIS.dataContext.getJSONRecord("VA027/PDC/GetVA009_OrderPayScheduleDetail", paramString);
+                if (GetVA009_OrderPayScheduleDetail != null) {
+                    mTab.setValue("VA027_PayAmt", Util.getValueOfDecimal(GetVA009_OrderPayScheduleDetail["VA027_PayAmt"]));
+                    mTab.setValue("VA009_PAYMENTMETHOD_ID", Util.getValueOfInt(GetVA009_OrderPayScheduleDetail["va009_paymentmethod_id"]));
+                    mTab.setValue("VA027_DISCOUNTAMT", Util.getValueOfDecimal(GetVA009_OrderPayScheduleDetail["VA027_DISCOUNTAMT"]));
+                    mTab.setValue("VA027_TRXDATE", Util.getValueOfDate(GetVA009_OrderPayScheduleDetail["VA027_TRXDATE"]));
+                    mTab.setValue("DateAcct", Util.getValueOfDate(GetVA009_OrderPayScheduleDetail["DateAcct"]));
+                }
             }
             catch (err) {
                 this.log.severe(err.toString());
@@ -173,7 +163,6 @@
                 this.setCalloutActive(false);
                 return "";
             }
-            //********************************end here
             return "";
         }
         this.setCalloutActive(true);
@@ -185,48 +174,20 @@
             ctx = windowNo = mTab = mField = value = oldvalue = null;
             return "";
         }
-        //********************************end here
+
         var _bP = Util.getValueOfInt(mTab.getValue("C_BPARTNER_ID"));
         try {
             if (_invSchedule != 0 && _bP != 0) {
-                var _qry = "SELECT VA009_PAYMENTMETHOD_ID,DUEAMT,DUEDATE,DISCOUNTAMT,C_BPARTNER_ID FROM C_INVOICEPAYSCHEDULE WHERE C_INVOICEPAYSCHEDULE_ID=" + _invSchedule;// + " AND AD_Client_ID = " + _client;//+ VIS.context.ctx["#AD_Client_ID"];
-                var ds = VIS.DB.executeDataSet(_qry);
-                if (ds.getTables()[0].getRows().length > 0) {
-                    var _payAmt = 0;
-                    var _dueAmt = Util.getValueOfDecimal(ds.getTables()[0].getRows()[0].getCell("dueamt"));
-                    var _discountAmt = Util.getValueOfDecimal(ds.getTables()[0].getRows()[0].getCell("discountamt"));
-                    _payAmt = _dueAmt - _discountAmt;
-                    mTab.setValue("VA027_PayAmt", _payAmt);
-                    mTab.setValue("VA009_PAYMENTMETHOD_ID", Util.getValueOfInt(ds.getTables()[0].getRows()[0].getCell("va009_paymentmethod_id")));
-                    mTab.setValue("VA027_DISCOUNTAMT", _discountAmt);
-                    mTab.setValue("VA027_TRXDATE", Util.getValueOfDate(ds.getTables()[0].getRows()[0].getCell("duedate")));
-                    mTab.setValue("DateAcct", Util.getValueOfDate(ds.getTables()[0].getRows()[0].getCell("duedate")));
-                    //mTab.setValue("C_Bpartner_ID", Util.getValueOfDate(ds.getTables()[0].getRows()[0].getCell("c_bpartner_id"))); 
+                var paramString = _invSchedule.toString();
+                var GetInvoiceScheduleDetail = VIS.dataContext.getJSONRecord("VA027/PDC/GetInvoiceScheduleDetail", paramString);
+                if (GetInvoiceScheduleDetail != null) {
+                    mTab.setValue("VA027_PayAmt", Util.getValueOfDecimal(GetInvoiceScheduleDetail["VA027_PayAmt"]));
+                    mTab.setValue("VA009_PAYMENTMETHOD_ID", Util.getValueOfInt(GetInvoiceScheduleDetail["va009_paymentmethod_id"]));
+                    mTab.setValue("VA027_DISCOUNTAMT", _Util.getValueOfDecimal(GetInvoiceScheduleDetail["VA027_DISCOUNTAMT"]));
+                    mTab.setValue("VA027_TRXDATE", Util.getValueOfDate(GetInvoiceScheduleDetail["VA027_TRXDATE"]));
+                    mTab.setValue("DateAcct", Util.getValueOfDate(GetInvoiceScheduleDetail["DateAcct"]));
                 }
             }
-            //else if (_invSchedule != 0 && _bP == 0) {
-            //    var _qry = "SELECT VA009_PAYMENTMETHOD_ID,DUEAMT,DUEDATE,DISCOUNTAMT,C_BPARTNER_ID FROM C_INVOICEPAYSCHEDULE WHERE C_INVOICEPAYSCHEDULE_ID=" + _invSchedule;// + " AND AD_Client_ID = " + _client;//+ VIS.context.ctx["#AD_Client_ID"];
-            //    var ds = VIS.DB.executeDataSet(_qry);
-            //    if (ds.getTables()[0].getRows().length > 0) {
-            //        var _payAmt = 0;
-            //        var _bPartner = Util.getValueOfInt(ds.getTables()[0].getRows()[0].getCell("c_bpartner_id"));
-
-            //        var _dueAmt = Util.getValueOfDecimal(ds.getTables()[0].getRows()[0].getCell("dueamt"));
-            //        var _discountAmt = Util.getValueOfDecimal(ds.getTables()[0].getRows()[0].getCell("discountamt"));
-            //        _payAmt = _dueAmt - _discountAmt;
-            //        if (_bPartner != 0) {
-            //            mTab.setValue("C_BPartner_ID", _bPartner);
-            //            mTab.setValue("VA027_PayAmt", _payAmt);
-            //            mTab.setValue("VA009_PAYMENTMETHOD_ID", Util.getValueOfInt(ds.getTables()[0].getRows()[0].getCell("va009_paymentmethod_id")));
-            //            mTab.setValue("VA027_DISCOUNTAMT", _discountAmt);
-            //            mTab.setValue("DateAcct", Util.getValueOfDate(ds.getTables()[0].getRows()[0].getCell("duedate")));
-
-            //            mTab.setValue("VA027_TRXDATE", Util.getValueOfDate(ds.getTables()[0].getRows()[0].getCell("duedate")));
-            //        }
-
-
-            //    }
-            //}
         }
         catch (err) {
             this.log.severe(err.toString());
@@ -249,7 +210,7 @@
         this.setCalloutActive(true);
         var dr = null;
         var dueAmt = 0;
-        
+
         var colName = mField.getColumnName();
         var IsReturnTrx = "";
         var _invSchedule = Util.getValueOfInt(mTab.getValue("C_INVOICEPAYSCHEDULE_ID"));
@@ -258,36 +219,36 @@
         var amount = Util.getValueOfDecimal(mTab.getValue("Amount") == null ? VIS.Env.ZERO : mTab.getValue("Amount"));
 
         try {
-                if (_invSchedule != 0) {
-                    dr = VIS.dataContext.getJSONRecord("PDC/GetInvoicePayscheduleData", _invSchedule.toString());
-                    if (dr != null) {
-                        dueAmt = Util.getValueOfDecimal(dr["DueAmt"]);
-                        mTab.setValue("InvoiceAmt", dueAmt);
-                        mTab.setValue("Amount", dueAmt);
-                        //Amount should be nagative in case of Return Invoice
-                        IsReturnTrx = Util.getValueOfString(dr["IsReturnTrx"]);
-                        if ("Y" == IsReturnTrx) {
-                            if (dueAmt > 0) {
-                                dueAmt = (dueAmt) * (-1);
-                                mTab.setValue("InvoiceAmt", dueAmt);
-                                mTab.setValue("Amount", dueAmt);
-                            }
-                            if (writeoffAmt > 0) {
-                                writeoffAmt = (writeoffAmt) * (-1);
-                                mTab.setValue("WriteOffAmt", writeoffAmt);
-                            }
-                            if (discountAmt > 0) {
-                                discountAmt = (discountAmt) * (-1);
-                                mTab.setValue("DiscountAmt", discountAmt);
-                            }
+            if (_invSchedule != 0) {
+                dr = VIS.dataContext.getJSONRecord("PDC/GetInvoicePayscheduleData", _invSchedule.toString());
+                if (dr != null) {
+                    dueAmt = Util.getValueOfDecimal(dr["DueAmt"]);
+                    mTab.setValue("InvoiceAmt", dueAmt);
+                    mTab.setValue("Amount", dueAmt);
+                    //Amount should be nagative in case of Return Invoice
+                    IsReturnTrx = Util.getValueOfString(dr["IsReturnTrx"]);
+                    if ("Y" == IsReturnTrx) {
+                        if (dueAmt > 0) {
+                            dueAmt = (dueAmt) * (-1);
+                            mTab.setValue("InvoiceAmt", dueAmt);
+                            mTab.setValue("Amount", dueAmt);
+                        }
+                        if (writeoffAmt > 0) {
+                            writeoffAmt = (writeoffAmt) * (-1);
+                            mTab.setValue("WriteOffAmt", writeoffAmt);
+                        }
+                        if (discountAmt > 0) {
+                            discountAmt = (discountAmt) * (-1);
+                            mTab.setValue("DiscountAmt", discountAmt);
                         }
                     }
-            }
-            if (colName.equals("WriteOffAmt") || colName.equals("DiscountAmt") || colName.equals("Amount")) {
-                    amount = dueAmt - discountAmt - writeoffAmt;
-                    mTab.setValue("Amount", amount);
                 }
             }
+            if (colName.equals("WriteOffAmt") || colName.equals("DiscountAmt") || colName.equals("Amount")) {
+                amount = dueAmt - discountAmt - writeoffAmt;
+                mTab.setValue("Amount", amount);
+            }
+        }
         catch (err) {
             this.log.severe(err.toString());
             this.setCalloutActive(false);
@@ -297,7 +258,7 @@
         ctx = windowNo = mTab = mField = value = oldvalue = null;
         return "";
     };
-   
+
     // PDC-Header -- Update VA027_PayAmt on chnage of Writeoff and Discount Amount
     VA027_CalloutPostPayment.prototype.WriteOffAmt = function (ctx, windowNo, mTab, mField, value, oldValue) {
         if (this.isCalloutActive() || value == null || value.toString() == "") {
@@ -324,7 +285,7 @@
                     _amt = Util.getValueOfDecimal(dr["DueAmt"]);
                 }
             }
-            mTab.setValue("VA027_PayAmt", (_amt -_discountAmt-_writeOffAmt));
+            mTab.setValue("VA027_PayAmt", (_amt - _discountAmt - _writeOffAmt));
         }
         catch (err) {
             this.log.severe(err.toString());
@@ -382,13 +343,13 @@
             if (dr != null) {
                 _docBaseType = dr["DocBaseType"];
                 if (_docBaseType == "ARI" || _docBaseType == "ARC") {
-                    if (_docBase == "PDP") {                      
+                    if (_docBase == "PDP") {
                         this.setCalloutActive(false);
                         return "VA027_PaymentDocTypeInvoiceInconsistent";
                     }
                 }
                 if (_docBaseType == "API" || _docBaseType == "APC") {
-                    if (_docBase == "PDR") {                      
+                    if (_docBase == "PDR") {
                         this.setCalloutActive(false);
                         return "VA027_PaymentDocTypeInvoiceInconsistent";
                     }
@@ -422,7 +383,7 @@
                 if (docType_ID > 0) {
                     if (_docBaseType == "SOO" && _trx && !_return) //SO
                     {
-                        if (_docBase == "PDP") {                          
+                        if (_docBase == "PDP") {
                             this.setCalloutActive(false);
                             return "VA027_PaymentDocTypeInvoiceInconsistent";
                         }
@@ -474,35 +435,32 @@
         var _trxDate = Util.getValueOfDate(mTab.getValue("VA027_TrxDate"));
         var _orderSchedule = Util.getValueOfInt(mTab.getValue("VA009_ORDERPAYSCHEDULE_ID"));
         var _invSchedule = Util.getValueOfInt(mTab.getValue("C_INVOICEPAYSCHEDULE_ID"));
-        // var _client = Util.getValueOfInt(mTab.getValue("AD_Client_ID"));
         if (_orderSchedule != 0 || _invSchedule != 0) {
             try {
-                if (_orderSchedule > 0) {
-                    var _qry = "SELECT VA009_PAYMENTMETHOD_ID,DUEAMT,DUEDATE,DISCOUNTDATE,DISCOUNTAMT,DISCOUNTDAYS2,DISCOUNT2 FROM VA009_ORDERPAYSCHEDULE WHERE VA009_ORDERPAYSCHEDULE_ID=" + _orderSchedule;// + " AND AD_Client_ID = " + _client;// + VIS.context.ctx["#AD_Client_ID"];
-                }
-                else {
-                    var _qry = "SELECT VA009_PAYMENTMETHOD_ID, DUEAMT, DUEDATE, DISCOUNTDATE, DISCOUNTAMT, DISCOUNTDAYS2, DISCOUNT2 FROM C_INVOICEPAYSCHEDULE WHERE C_INVOICEPAYSCHEDULE_ID=" + _invSchedule;// + " AND AD_Client_ID = " + _client;// + VIS.context.ctx["#AD_Client_ID"];
-                }
-                var ds = VIS.DB.executeDataSet(_qry);
-                var _payAmt = 0;
-                var _dueAmt = Util.getValueOfDecimal(ds.getTables()[0].getRows()[0].getCell("dueamt"));
-                var _discountAmt = Util.getValueOfDecimal(ds.getTables()[0].getRows()[0].getCell("discountamt"));
-                var _discount2 = Util.getValueOfDecimal(ds.getTables()[0].getRows()[0].getCell("discount2"));
-                var _discountDate = Util.getValueOfDate(ds.getTables()[0].getRows()[0].getCell("discountdate"));
-                var _discountDays = Util.getValueOfDate(ds.getTables()[0].getRows()[0].getCell("discountdays2"));
-                if (_trxDate <= _discountDate) {
-                    _payAmt = _dueAmt - _discountAmt;
-                    mTab.setValue("VA027_PayAmt", _payAmt);
-                    mTab.setValue("VA027_DiscountAmt", _discountAmt);
-                }
-                else if (_trxDate <= _discountDays) {
-                    _payAmt = _dueAmt - _discount2;
-                    mTab.setValue("VA027_PayAmt", _payAmt);
-                    mTab.setValue("VA027_DiscountAmt", _discount2);
-                }
-                else if (_trxDate > _discountDate || _trxDate > _discountDays) {
-                    mTab.setValue("VA027_PayAmt", _dueAmt);
-                    mTab.setValue("VA027_DiscountAmt", VIS.Env.ZERO);
+                var paramString = _orderSchedule.toString() + ", " + _invSchedule.toString();
+                var GetDiscountDateSchedule = VIS.dataContext.getJSONRecord("VA027/PDC/GetDiscountDateSchedule", paramString);
+                if (GetDiscountDateSchedule != null) {
+                    var _payAmt = 0;
+                    var _dueAmt = Util.getValueOfDecimal(GetDiscountDateSchedule["DUEAMT"]);
+                    var _discountAmt = Util.getValueOfDecimal(GetDiscountDateSchedule["DISCOUNT2"]);
+                    var _discount2 = Util.getValueOfDecimal(GetDiscountDateSchedule["VA027_DISCOUNTAMT"]);
+                    var _discountDate = Util.getValueOfDate(GetDiscountDateSchedule["DISCOUNTDATE"]);
+                    var _discountDays = Util.getValueOfDate(GetDiscountDateSchedule["DISCOUNTDAYS2"]);
+
+                    if (_trxDate <= _discountDate) {
+                        _payAmt = _dueAmt - _discountAmt;
+                        mTab.setValue("VA027_PayAmt", _payAmt);
+                        mTab.setValue("VA027_DiscountAmt", _discountAmt);
+                    }
+                    else if (_trxDate <= _discountDays) {
+                        _payAmt = _dueAmt - _discount2;
+                        mTab.setValue("VA027_PayAmt", _payAmt);
+                        mTab.setValue("VA027_DiscountAmt", _discount2);
+                    }
+                    else if (_trxDate > _discountDate || _trxDate > _discountDays) {
+                        mTab.setValue("VA027_PayAmt", _dueAmt);
+                        mTab.setValue("VA027_DiscountAmt", VIS.Env.ZERO);
+                    }
                 }
             }
             catch (err) {

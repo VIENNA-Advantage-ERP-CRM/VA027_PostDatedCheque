@@ -113,5 +113,73 @@ namespace VA027.Controllers
             }
             return Json(retJSON, JsonRequestBehavior.AllowGet);
         }
+
+        /// <summary>
+        /// Get Payment Method from Business Partner
+        /// </summary>
+        /// <param name="fields">C_BPartner_ID</param>
+        /// <returns>Data in JSON Format</returns>
+        public JsonResult GetPaymentMethodFromBP(String fields)
+        {
+            string retJSON = "";
+            if (Session["ctx"] != null)
+            {
+                Ctx ctx = Session["ctx"] as Ctx;
+                PDCModel paymodel = new PDCModel();
+                retJSON = JsonConvert.SerializeObject(paymodel.GetPaymentMethodFromBP(ctx, fields));
+            }
+            return Json(retJSON, JsonRequestBehavior.AllowGet);
+        }
+
+        /// <summary>
+        /// Get Order Schedule Detail
+        /// </summary>
+        /// <param name="fields">VA009_ORDERPAYSCHEDULE_ID</param>
+        /// <returns>Data in JSON Format</returns>
+        public JsonResult GetVA009_OrderPayScheduleDetail(String fields)
+        {
+            string retJSON = "";
+            if (Session["ctx"] != null)
+            {
+                Ctx ctx = Session["ctx"] as Ctx;
+                PDCModel paymodel = new PDCModel();
+                retJSON = JsonConvert.SerializeObject(paymodel.GetVA009_OrderPayScheduleDetail(ctx, fields));
+            }
+            return Json(retJSON, JsonRequestBehavior.AllowGet);
+        }
+
+        /// <summary>
+        /// Get Invoice Schedule Detail
+        /// </summary>
+        /// <param name="fields">C_INVOICEPAYSCHEDULE_ID</param>
+        /// <returns>Data in JSON Format</returns>
+        public JsonResult GetInvoiceScheduleDetail(String fields)
+        {
+            string retJSON = "";
+            if (Session["ctx"] != null)
+            {
+                Ctx ctx = Session["ctx"] as Ctx;
+                PDCModel paymodel = new PDCModel();
+                retJSON = JsonConvert.SerializeObject(paymodel.GetInvoiceScheduleDetail(ctx, fields));
+            }
+            return Json(retJSON, JsonRequestBehavior.AllowGet);
+        }
+
+        /// <summary>
+        /// Get Discount Date from Schedule (Order / Invoice)
+        /// </summary>
+        /// <param name="fields">C_InvoicePaySchedule_ID, VA009_OrderPaySchedule_ID</param>
+        /// <returns>Data in JSON Format</returns>
+        public JsonResult GetDiscountDateSchedule(String fields)
+        {
+            string retJSON = "";
+            if (Session["ctx"] != null)
+            {
+                Ctx ctx = Session["ctx"] as Ctx;
+                PDCModel paymodel = new PDCModel();
+                retJSON = JsonConvert.SerializeObject(paymodel.GetDiscountDateSchedule(ctx, fields));
+            }
+            return Json(retJSON, JsonRequestBehavior.AllowGet);
+        }
     }
 }
