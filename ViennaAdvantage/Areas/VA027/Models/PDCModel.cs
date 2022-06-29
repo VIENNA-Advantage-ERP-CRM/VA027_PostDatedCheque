@@ -171,6 +171,95 @@ namespace VA027.Models
         {
             int Currency_ID = Util.GetValueOfInt(DB.ExecuteScalar("SELECT C_Currency_ID FROM C_BankAccount WHERE C_BankAccount_ID = " + Util.GetValueOfInt(field),null,null));
             return Currency_ID;
-        }     
+        }
+
+        /// <summary>
+        /// Get Payment Method from Business Partner
+        /// </summary>
+        /// <param name="ctx">Context</param>
+        /// <param name="field">C_BPartner_ID</param>
+        /// <returns>Currency_ID</returns>
+        public int GetPaymentMethodFromBP(Ctx ctx, string field)
+        {
+            return Util.GetValueOfInt(DB.ExecuteScalar("SELECT VA009_PAYMENTMETHOD_ID FROM C_BPARTNER WHERE C_BPARTNER_ID = " + Util.GetValueOfInt(field), null, null));
+        }
+
+        /// <summary>
+        /// Get Order Schedule Detail
+        /// </summary>
+        /// <param name="ctx">Context</param>
+        /// <param name="field">VA009_ORDERPAYSCHEDULE_ID</param>
+        /// <returns>Order Schedule Details</returns>
+        public Dictionary<string, object> GetVA009_OrderPayScheduleDetail(Ctx ctx, string field)
+        {
+            Dictionary<string, object> result = new Dictionary<string, object>();
+            DataSet ds = DB.ExecuteDataset(@"SELECT VA009_PAYMENTMETHOD_ID,DUEAMT,DUEDATE,DISCOUNTAMT,C_BPARTNER_ID
+                                                        FROM VA009_ORDERPAYSCHEDULE WHERE VA009_ORDERPAYSCHEDULE_ID= " + Util.GetValueOfInt(field), null, null);
+            if (ds != null && ds.Tables.Count > 0 && ds.Tables[0].Rows.Count > 0)
+            {
+                result["VA027_PayAmt"] = Util.GetValueOfDecimal(ds.Tables[0].Rows[0]["dueamt"]) - Util.GetValueOfDecimal(ds.Tables[0].Rows[0]["discountamt"]);
+                result["VA009_PAYMENTMETHOD_ID"] = Util.GetValueOfInt(ds.Tables[0].Rows[0]["va009_paymentmethod_id"]);
+                result["VA027_DISCOUNTAMT"] = Util.GetValueOfDecimal(ds.Tables[0].Rows[0]["discountamt"]);
+                result["VA027_TRXDATE"] = Util.GetValueOfDateTime(ds.Tables[0].Rows[0]["duedate"]);
+                result["DateAcct"] = Util.GetValueOfDateTime(ds.Tables[0].Rows[0]["duedate"]);
+            }
+            return result;
+        }
+
+        /// <summary>
+        /// Get Invoice Schedule Detail
+        /// </summary>
+        /// <param name="ctx">Context</param>
+        /// <param name="field">C_INVOICEPAYSCHEDULE_ID</param>
+        /// <returns>Order Schedule Details</returns>
+        public Dictionary<string, object> GetInvoiceScheduleDetail(Ctx ctx, string field)
+        {
+            Dictionary<string, object> result = new Dictionary<string, object>();
+            DataSet ds = DB.ExecuteDataset(@"SELECT VA009_PAYMENTMETHOD_ID, DUEAMT, DUEDATE, DISCOUNTAMT, C_BPARTNER_ID 
+                                             FROM C_INVOICEPAYSCHEDULE WHERE C_INVOICEPAYSCHEDULE_ID = " + Util.GetValueOfInt(field), null, null);
+            if (ds != null && ds.Tables.Count > 0 && ds.Tables[0].Rows.Count > 0)
+            {
+                result["VA027_PayAmt"] = Util.GetValueOfDecimal(ds.Tables[0].Rows[0]["DUEAMT"]) - Util.GetValueOfDecimal(ds.Tables[0].Rows[0]["DISCOUNTAMT"]);
+                result["VA009_PAYMENTMETHOD_ID"] = Util.GetValueOfInt(ds.Tables[0].Rows[0]["VA009_PAYMENTMETHOD_ID"]);
+                result["VA027_DISCOUNTAMT"] = Util.GetValueOfDecimal(ds.Tables[0].Rows[0]["DISCOUNTAMT"]);
+                result["VA027_TRXDATE"] = Util.GetValueOfDateTime(ds.Tables[0].Rows[0]["DUEDATE"]);
+                result["DateAcct"] = Util.GetValueOfDateTime(ds.Tables[0].Rows[0]["DUEDATE"]);
+            }
+            return result;
+        }
+
+        /// <summary>
+        ///  Get Discount Date from Schedule (Order / Invoice)
+        /// </summary>
+        /// <param name="ctx">Context</param>
+        /// <param name="field">C_InvoicePaySchedule_ID, VA009_OrderPaySchedule_ID</param>
+        /// <returns>Order Schedule Details</returns>
+        public Dictionary<string, object> GetDiscountDateSchedule(Ctx ctx, string field)
+        {
+            string[] paramValue = field.Split(',');
+            DataSet ds = null;
+            Dictionary<string, object> result = new Dictionary<string, object>();
+
+            if (Util.GetValueOfInt(paramValue[0]) > 0)
+            {
+                ds = DB.ExecuteDataset(@"SELECT VA009_PAYMENTMETHOD_ID,DUEAMT,DUEDATE,DISCOUNTDATE,DISCOUNTAMT,DISCOUNTDAYS2,DISCOUNT2 
+                                            FROM VA009_ORDERPAYSCHEDULE WHERE VA009_ORDERPAYSCHEDULE_ID=" + Util.GetValueOfInt(paramValue[0]), null, null);
+            }
+            else
+            {
+                ds = DB.ExecuteDataset(@"SELECT VA009_PAYMENTMETHOD_ID, DUEAMT, DUEDATE, DISCOUNTDATE, DISCOUNTAMT, DISCOUNTDAYS2, DISCOUNT2 
+                                        FROM C_INVOICEPAYSCHEDULE WHERE C_INVOICEPAYSCHEDULE_ID=" + Util.GetValueOfInt(paramValue[1]), null, null);
+            }
+            if (ds != null && ds.Tables.Count > 0 && ds.Tables[0].Rows.Count > 0)
+            {
+                result["DUEAMT"] = Util.GetValueOfDecimal(ds.Tables[0].Rows[0]["DUEAMT"]);
+                result["DISCOUNT2"] = Util.GetValueOfDecimal(ds.Tables[0].Rows[0]["DISCOUNT2"]);
+                result["VA027_DISCOUNTAMT"] = Util.GetValueOfDecimal(ds.Tables[0].Rows[0]["DISCOUNTAMT"]);
+                result["DISCOUNTDATE"] = Util.GetValueOfDateTime(ds.Tables[0].Rows[0]["DISCOUNTDATE"]);
+                result["DISCOUNTDAYS2"] = Util.GetValueOfDateTime(ds.Tables[0].Rows[0]["DISCOUNTDAYS2"]);
+                result["VA009_PAYMENTMETHOD_ID"] = Util.GetValueOfInt(ds.Tables[0].Rows[0]["VA009_PAYMENTMETHOD_ID"]);
+            }
+            return result;
+        }
     }
 }
