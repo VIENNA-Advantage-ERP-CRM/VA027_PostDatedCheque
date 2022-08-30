@@ -31,7 +31,6 @@ namespace VA027 //  Please replace namespace with prefix of your module..
 
             StyleBundle style = new StyleBundle("~/Areas/VA027/Contents/VA027Style");
             ScriptBundle script = new ScriptBundle("~/Areas/VA027/Scripts/VA027Js");
-            /* ==>  Here include all css files in style bundle......see example below....  */
 
             //style.Include("~/Areas/VA027/Contents/VA027_View.css");
 

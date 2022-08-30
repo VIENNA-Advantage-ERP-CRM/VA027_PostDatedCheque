@@ -52,10 +52,10 @@
       <HintPath>..\packages\Antlr.3.4.1.9004\lib\Antlr3.Runtime.dll</HintPath>
     </Reference>
     <Reference Include="BaseLibrary">
-      <HintPath>..\..\Framework Breakage Dlls\BaseLibrary.dll</HintPath>
+      <HintPath>DLL\BaseLibrary.dll</HintPath>
     </Reference>
     <Reference Include="CoreLibrary">
-      <HintPath>..\..\Framework Breakage Dlls\CoreLibrary.dll</HintPath>
+      <HintPath>DLL\CoreLibrary.dll</HintPath>
     </Reference>
     <Reference Include="CrystalDecisions.CrystalReports.Engine">
       <HintPath>..\..\..\..\HTML5 Shared Files\Dlls\CrystalDecisions.CrystalReports.Engine.dll</HintPath>
@@ -126,7 +126,7 @@
     </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="ModelLibrary">
-      <HintPath>..\..\Framework Breakage Dlls\ModelLibrary.dll</HintPath>
+      <HintPath>DLL\ModelLibrary.dll</HintPath>
     </Reference>
     <Reference Include="Mono.Security">
       <HintPath>DLL\Mono.Security.dll</HintPath>
@@ -230,16 +230,22 @@
     <Reference Include="System.XML" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="VAModelAD">
-      <HintPath>..\..\Framework Breakage Dlls\VAModelAD.dll</HintPath>
+      <HintPath>DLL\VAModelAD.dll</HintPath>
     </Reference>
     <Reference Include="ViennaBase">
-      <HintPath>..\..\Framework Breakage Dlls\ViennaBase.dll</HintPath>
+      <HintPath>DLL\ViennaBase.dll</HintPath>
     </Reference>
     <Reference Include="VIS">
-      <HintPath>..\..\Framework Breakage Dlls\VIS.dll</HintPath>
+      <HintPath>DLL\VIS.dll</HintPath>
+    </Reference>
+    <Reference Include="VISLogic">
+      <HintPath>DLL\VISLogic.dll</HintPath>
     </Reference>
     <Reference Include="WebGrease, Version=1.6.5135.21930, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\WebGrease.1.6.0\lib\WebGrease.dll</HintPath>
+    </Reference>
+    <Reference Include="XModel">
+      <HintPath>DLL\XModel.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
