@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using VAdvantage.DataBase;
 using VAdvantage.Model;
 using VAdvantage.Utility;
-using ViennaLogger.Logging;
 
 namespace ViennaAdvantage.Model
 {
