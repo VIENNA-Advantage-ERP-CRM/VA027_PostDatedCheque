@@ -181,22 +181,28 @@ namespace ViennaAdvantage.Model
 
         public String PrepareIt()
         {
+            log.Info(ToString());
+            _processMsg = ModelValidationEngine.Get().FireDocValidate(this, ModalValidatorVariables.DOCTIMING_BEFORE_PREPARE);
+            if (_processMsg != null)
+                return DocActionVariables.STATUS_INVALID;
+
             MDocType dt = MDocType.Get(GetCtx(), GetC_DocType_ID());
-            if (!MPeriod.IsOpen(GetCtx(), GetDateAcct(), dt.GetDocBaseType()))
+            if (!MPeriod.IsOpen(GetCtx(), GetDateAcct(), dt.GetDocBaseType(), GetAD_Org_ID()))
             {
                 _processMsg = "@PeriodClosed@";
                 return DocActionVariables.STATUS_INVALID;
             }
 
             // is Non Business Day?
-            if (MNonBusinessDay.IsNonBusinessDay(GetCtx(), GetDateAcct()))
+            if (MNonBusinessDay.IsNonBusinessDay(GetCtx(), GetDateAcct(), GetAD_Org_ID()))
             {
                 _processMsg = VAdvantage.Common.Common.NONBUSINESSDAY;
                 return DocActionVariables.STATUS_INVALID;
             }
+
             if (IsVA027_MultiCheque())
             {
-                if (Util.GetValueOfInt(DB.ExecuteScalar("Select Count(*) From VA027_ChequeDetails Where VA027_PostDatedCheck_ID=" + GetVA027_PostDatedCheck_ID(), null, Get_Trx())) <= 0)
+                if (Util.GetValueOfInt(DB.ExecuteScalar("Select Count(VA027_ChequeDetails_ID) From VA027_ChequeDetails Where VA027_PostDatedCheck_ID=" + GetVA027_PostDatedCheck_ID(), null, Get_Trx())) <= 0)
                 {
                     _processMsg = "@NoLinesFound@";
                     return DocActionVariables.STATUS_INVALID;
@@ -295,10 +301,6 @@ namespace ViennaAdvantage.Model
                 SetVA027_WriteoffAmt(Env.ZERO);
 
             }
-            //*****************code  
-
-            //***********************end here 
-
             else
             {
                 res = ReverseCorrectIt();
@@ -318,26 +320,19 @@ namespace ViennaAdvantage.Model
             try
             {
                 MDocType dt = MDocType.Get(GetCtx(), GetC_DocType_ID());
-                if (!MPeriod.IsOpen(GetCtx(), GetDateAcct(), dt.GetDocBaseType()))
+                if (!MPeriod.IsOpen(GetCtx(), GetDateAcct(), dt.GetDocBaseType(), GetAD_Org_ID()))
                 {
                     _processMsg = "@PeriodClosed@";
                     return false;
                 }
 
                 // is Non Business Day?
-                if (MNonBusinessDay.IsNonBusinessDay(GetCtx(), GetDateAcct()))
+                if (MNonBusinessDay.IsNonBusinessDay(GetCtx(), GetDateAcct(), GetAD_Org_ID()))
                 {
                     _processMsg = VAdvantage.Common.Common.NONBUSINESSDAY;
                     return false;
                 }
-                //commented by arpit
-                //if (!IsVA027_PaymentGenerated())
-                //{
-                //    _processMsg = "Payment Not Generated Yet";
-                //    Get_Trx().Rollback();
-                //    return false;
-                //}
-                //end here
+
                 if (GetC_Payment_ID() > 0)
                 {
                     MPayment pay = new MPayment(GetCtx(), GetC_Payment_ID(), Get_Trx());
@@ -351,7 +346,11 @@ namespace ViennaAdvantage.Model
                 MVA027PostDatedCheck reversal = new MVA027PostDatedCheck(GetCtx(), 0, Get_Trx());
                 CopyValues(this, reversal);
                 reversal.SetClientOrg(this);
-                reversal.SetVA027_PayAmt(Decimal.Negate(reversal.GetVA027_PayAmt()));
+                //VIS_045: 17-August-2023 -> DevOps Task ID:2327 -> Handle reversal amount 
+                reversal.SetVA027_PayAmt(Decimal.Negate(GetVA027_PayAmt()));
+                reversal.SetVA027_ConvertedAmount(Decimal.Negate(GetVA027_ConvertedAmount()));
+                reversal.SetVA027_DiscountAmt(Decimal.Negate(GetVA027_DiscountAmt()));
+                reversal.SetVA027_WriteoffAmt(Decimal.Negate(GetVA027_WriteoffAmt()));
                 reversal.SetDocumentNo(GetDocumentNo() + REVERSE_INDICATOR);
                 if (!string.IsNullOrEmpty(GetVA027_CheckNo()))
                     reversal.SetVA027_CheckNo(GetVA027_CheckNo() + REVERSE_INDICATOR);
@@ -370,7 +369,7 @@ namespace ViennaAdvantage.Model
                     {
                         for (Int32 i = 0; i < ds.Tables[0].Rows.Count; i++)
                         {
-                            MVA027ChequeDetails original = new MVA027ChequeDetails(GetCtx(), Util.GetValueOfInt(ds.Tables[0].Rows[i]["VA027_CHEQUEDETAILS_ID"]), Get_Trx());
+                            MVA027ChequeDetails original = new MVA027ChequeDetails(GetCtx(), ds.Tables[0].Rows[i], Get_Trx());
                             MVA027ChequeDetails cd = new MVA027ChequeDetails(GetCtx(), 0, Get_Trx());
                             if (original.GetC_Payment_ID() > 0)
                             {
