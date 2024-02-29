@@ -37,6 +37,8 @@ namespace ViennaAdvantage.Common
                 else if (docStatus.Equals(DocumentEngine.STATUS_COMPLETED))
                 {
                     opt.Add(DocumentEngine.ACTION_REVERSE_CORRECT);
+                    //VIS_427 TaskId 5285 29/02/2024 Provided Reactivate option on post dated check screen
+                    opt.Add(DocumentEngine.ACTION_REACTIVATE);
                     opt.Add(DocumentEngine.ACTION_CLOSE);
                     opt.Add(DocumentEngine.ACTION_VOID);
                 }
