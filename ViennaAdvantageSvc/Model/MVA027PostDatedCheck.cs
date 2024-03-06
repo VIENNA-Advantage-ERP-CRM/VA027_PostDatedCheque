@@ -50,7 +50,7 @@ namespace ViennaAdvantage.Model
                 }
             }
             //if charge is not selected then set the tax_id=0
-            if (GetC_Charge_ID()==0)
+            if (GetC_Charge_ID() == 0)
             {
                 SetC_Tax_ID(0);
             }
@@ -182,7 +182,8 @@ namespace ViennaAdvantage.Model
         public String PrepareIt()
         {
             log.Info(ToString());
-            _processMsg = ModelValidationEngine.Get().FireDocValidate(this, ModalValidatorVariables.DOCTIMING_BEFORE_PREPARE);
+            //VIS_427 TaskId 5285 29/02/2024 User Validation Before Prepare
+            _processMsg = ModelValidationEngine.Get().FireDocValidate(this, ModelValidatorVariables.DOCTIMING_BEFORE_PREPARE);
             if (_processMsg != null)
                 return DocActionVariables.STATUS_INVALID;
 
@@ -208,12 +209,25 @@ namespace ViennaAdvantage.Model
                     return DocActionVariables.STATUS_INVALID;
                 }
             }
+            //VIS_427 TaskId 5285 29/02/2024 User Validation After Prepare
+            _processMsg = ModelValidationEngine.Get().FireDocValidate(this, ModelValidatorVariables.DOCTIMING_AFTER_PREPARE);
+            if (_processMsg != null)
+            {
+                return DocActionVariables.STATUS_INVALID;
+            }
 
             return DocActionVariables.STATUS_INPROGRESS;
         }
 
         public virtual String CompleteIt()
         {
+            //VIS_427 TaskId 5285 29/02/2024 User Validation Before Complete
+            _processMsg = ModelValidationEngine.Get().FireDocValidate(this, ModelValidatorVariables.DOCTIMING_BEFORE_COMPLETE);
+            if (_processMsg != null)
+            {
+                return DocActionVariables.STATUS_INPROGRESS;
+            }
+
             //complete only if payAmt is not negative or 0
             if (GetVA027_PayAmt() > 0)
             {
@@ -239,13 +253,19 @@ namespace ViennaAdvantage.Model
                             }
                             else
                             {
-                                 if( Util.GetValueOfInt(DB.ExecuteQuery("UPDATE VA027_ChequeDetails  SET Processed = 'Y' WHERE VA027_ChequeDetails_ID = " + Util.GetValueOfInt(_ds.Tables[0].Rows[i]["VA027_ChequeDetails_ID"]), null, Get_Trx())) <0)
+                                if (Util.GetValueOfInt(DB.ExecuteQuery("UPDATE VA027_ChequeDetails  SET Processed = 'Y' WHERE VA027_ChequeDetails_ID = " + Util.GetValueOfInt(_ds.Tables[0].Rows[i]["VA027_ChequeDetails_ID"]), null, Get_Trx())) < 0)
                                 {
-                                    log.Severe("Processed not update on chequedetails" + Util.GetValueOfInt(_ds.Tables[0].Rows[i]["VA027_ChequeDetails_ID"]));                                  
+                                    log.Severe("Processed not update on chequedetails" + Util.GetValueOfInt(_ds.Tables[0].Rows[i]["VA027_ChequeDetails_ID"]));
                                 }
                             }
                         }
                     }
+                }
+                //VIS_427 TaskId 5285 29/02/2024 User Validation After Complete
+                _processMsg = ModelValidationEngine.Get().FireDocValidate(this, ModelValidatorVariables.DOCTIMING_AFTER_COMPLETE);
+                if (_processMsg != null)
+                {
+                    return DocActionVariables.STATUS_INPROGRESS;
                 }
                 SetProcessed(true);
                 SetDocAction(DOCACTION_Close);
@@ -260,6 +280,20 @@ namespace ViennaAdvantage.Model
         public virtual bool CloseIt()
         {
             log.Info(ToString());
+            //VIS_427 TaskId 5285 29/02/2024 User Validation Before Close
+            _processMsg = ModelValidationEngine.Get().FireDocValidate(this, ModelValidatorVariables.DOCTIMING_BEFORE_CLOSE);
+            if (_processMsg != null)
+            {
+                return false;
+            }
+
+            //VIS_427 TaskId 5285 29/02/2024 User Validation After Close
+            _processMsg = ModelValidationEngine.Get().FireDocValidate(this, ModelValidatorVariables.DOCTIMING_AFTER_CLOSE);
+            if (_processMsg != null)
+            {
+                return false;
+            }
+
             SetProcessed(true);
             SetDocAction(DOCACTION_None);
             return true;
@@ -274,6 +308,12 @@ namespace ViennaAdvantage.Model
                 || DOCSTATUS_Voided.Equals(GetDocStatus()))
             {
                 _processMsg = "Document Closed: " + GetDocStatus();
+                return false;
+            }
+            //VIS_427 TaskId 5285 29/02/2024 User Validation Before Void
+            _processMsg = ModelValidationEngine.Get().FireDocValidate(this, ModelValidatorVariables.DOCTIMING_BEFORE_VOID);
+            if (_processMsg != null)
+            {
                 return false;
             }
 
@@ -307,6 +347,13 @@ namespace ViennaAdvantage.Model
             }
             if (res == true)
             {
+                //VIS_427 TaskId 5285 29/02/2024 User Validation After Void
+                _processMsg = ModelValidationEngine.Get().FireDocValidate(this, ModelValidatorVariables.DOCTIMING_AFTER_VOID);
+                if (_processMsg != null)
+                {
+                    return false;
+                }
+
                 SetProcessed(true);
                 SetDocAction(DOCACTION_None);
                 return true;
@@ -319,6 +366,13 @@ namespace ViennaAdvantage.Model
         {
             try
             {
+                //VIS_427 TaskId 5285 29/02/2024 User Validation Before ReverseCorrect
+                _processMsg = ModelValidationEngine.Get().FireDocValidate(this, ModelValidatorVariables.DOCTIMING_BEFORE_REVERSECORRECT);
+                if (_processMsg != null)
+                {
+                    return false;
+                }
+
                 MDocType dt = MDocType.Get(GetCtx(), GetC_DocType_ID());
                 if (!MPeriod.IsOpen(GetCtx(), GetDateAcct(), dt.GetDocBaseType(), GetAD_Org_ID()))
                 {
@@ -412,7 +466,12 @@ namespace ViennaAdvantage.Model
                 reversal.Save(Get_Trx());
 
                 this.AddDescription("(" + GetDocumentNo() + "<-)");
-
+                //VIS_427 TaskId 5285 29/02/2024 User Validation After ReverseCorrect
+                _processMsg = ModelValidationEngine.Get().FireDocValidate(this, ModelValidatorVariables.DOCTIMING_AFTER_REVERSECORRECT);
+                if (_processMsg != null)
+                {
+                    return false;
+                }
                 SetDocStatus(DOCSTATUS_Reversed);
                 SetDocAction(DOCACTION_None);
                 SetProcessed(true);
@@ -468,6 +527,21 @@ namespace ViennaAdvantage.Model
         public virtual bool ReActivateIt()
         {
             log.Info(ToString());
+            //VIS_427 TaskId 5285 29/02/2024 User Validation at Reactivate
+            if (this.ModelAction != null)
+            {
+                // Reactivation functionality not supported, but to be enhanced through Model Validatior with Skip Base functionality 
+                bool skipBase = false;
+                _processMsg = this.ModelAction.ReActivateIt(out skipBase);
+                if (!String.IsNullOrEmpty(_processMsg))
+                {
+                    return false;
+                }
+
+                if (skipBase)
+                    return true;
+            }
+            _processMsg = Msg.GetMsg(GetCtx(), "VA027_NotImplemented"); ;
             return false;
         }
 
