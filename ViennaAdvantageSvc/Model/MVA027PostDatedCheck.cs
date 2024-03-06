@@ -50,7 +50,7 @@ namespace ViennaAdvantage.Model
                 }
             }
             //if charge is not selected then set the tax_id=0
-            if (GetC_Charge_ID()==0)
+            if (GetC_Charge_ID() == 0)
             {
                 SetC_Tax_ID(0);
             }
@@ -253,9 +253,9 @@ namespace ViennaAdvantage.Model
                             }
                             else
                             {
-                                 if( Util.GetValueOfInt(DB.ExecuteQuery("UPDATE VA027_ChequeDetails  SET Processed = 'Y' WHERE VA027_ChequeDetails_ID = " + Util.GetValueOfInt(_ds.Tables[0].Rows[i]["VA027_ChequeDetails_ID"]), null, Get_Trx())) <0)
+                                if (Util.GetValueOfInt(DB.ExecuteQuery("UPDATE VA027_ChequeDetails  SET Processed = 'Y' WHERE VA027_ChequeDetails_ID = " + Util.GetValueOfInt(_ds.Tables[0].Rows[i]["VA027_ChequeDetails_ID"]), null, Get_Trx())) < 0)
                                 {
-                                    log.Severe("Processed not update on chequedetails" + Util.GetValueOfInt(_ds.Tables[0].Rows[i]["VA027_ChequeDetails_ID"]));                                  
+                                    log.Severe("Processed not update on chequedetails" + Util.GetValueOfInt(_ds.Tables[0].Rows[i]["VA027_ChequeDetails_ID"]));
                                 }
                             }
                         }
@@ -539,19 +539,22 @@ namespace ViennaAdvantage.Model
         public virtual bool ReActivateIt()
         {
             log.Info(ToString());
-            //VIS_427 TaskId 5285 29/02/2024 User Validation Before Reactivate
-            _processMsg = ModelValidationEngine.Get().FireDocValidate(this, ModelValidatorVariables.DOCTIMING_BEFORE_REACTIVATE);
-            if (_processMsg != null)
+            //VIS_427 TaskId 5285 29/02/2024 User Validation at Reactivate
+            if (this.ModelAction != null)
             {
-                return false;
+                // Reactivation functionality not supported, but to be enhanced through Model Validatior with Skip Base functionality 
+                bool skipBase = false;
+                _processMsg = this.ModelAction.ReActivateIt(out skipBase);
+                if (!String.IsNullOrEmpty(_processMsg))
+                {
+                    return false;
+                }
+
+                if (skipBase)
+                    return true;
             }
-            //VIS_427 TaskId 5285 29/02/2024 User Validation After Reactivate
-            _processMsg = ModelValidationEngine.Get().FireDocValidate(this, ModelValidatorVariables.DOCTIMING_AFTER_REACTIVATE);
-            if (_processMsg != null)
-            {
-                return false;
-            }
-            return true;
+            _processMsg = Msg.GetMsg(GetCtx(), "VA027_NotImplemented"); ;
+            return false;
         }
 
         public String GetDocumentInfo()
