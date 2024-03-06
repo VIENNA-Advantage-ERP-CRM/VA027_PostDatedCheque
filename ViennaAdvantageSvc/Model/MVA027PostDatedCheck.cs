@@ -521,19 +521,7 @@ namespace ViennaAdvantage.Model
         public bool ReverseAccrualIt()
         {
             log.Info(ToString());
-            //VIS_427 TaskId 5285 29/02/2024 User Validation Before ReverseAccrual
-            _processMsg = ModelValidationEngine.Get().FireDocValidate(this, ModelValidatorVariables.DOCTIMING_BEFORE_REVERSEACCRUAL);
-            if (_processMsg != null)
-            {
-                return false;
-            }
-            //VIS_427 TaskId 5285 29/02/2024 User Validation After ReverseAccrual
-            _processMsg = ModelValidationEngine.Get().FireDocValidate(this, ModelValidatorVariables.DOCTIMING_AFTER_REVERSEACCRUAL);
-            if (_processMsg != null)
-            {
-                return false;
-            }
-            return true;
+            return false;
         }
 
         public virtual bool ReActivateIt()
