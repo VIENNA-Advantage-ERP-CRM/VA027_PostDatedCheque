@@ -49,6 +49,13 @@ namespace ViennaAdvantage.Model
                     }
                 }
             }
+            //VIS_427 Handled this code as if user change bank account and their exist any record in Cheque detail tab then delete those records in order to change the bank account
+            if(Is_ValueChanged("C_BankAccount_ID") && 
+                Util.GetValueOfInt(DB.ExecuteScalar("SELECT COUNT(*) FROM VA027_ChequeDetails WHERE VA027_PostDatedCheck_ID = " + GetVA027_PostDatedCheck_ID(), null, Get_Trx())) > 0)
+            {
+                log.SaveError("", Msg.GetMsg(GetCtx(), "VA027_DeleteLinesFirst"));
+                return false;
+            }
             //if charge is not selected then set the tax_id=0
             if (GetC_Charge_ID() == 0)
             {

@@ -112,6 +112,16 @@ namespace ViennaAdvantage.Model
                     }
                 }
             }
+            //VIS_427 17/02/2025 Set the account number to be the same as the post-dated check account number field. 
+            if (Util.GetValueOfDecimal(GetVA027_AccountNo()) == 0)
+            {
+                SetVA027_AccountNo(pdc.GetVA027_AccountNo());
+            }
+            //VIS_427 17/02/2025 Set the account name to be the same as the post-dated check account name field. 
+            if (string.IsNullOrEmpty(Util.GetValueOfString(GetVA027_AccountName())))
+            {
+                SetVA027_AccountName(pdc.GetVA027_AccountName());
+            }
             return true;
         }
 
