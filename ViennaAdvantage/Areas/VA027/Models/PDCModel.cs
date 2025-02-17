@@ -163,15 +163,24 @@ namespace VA027.Models
         }
 
         /// <summary>
-        /// Get currency of BankAccount
+        /// Get Details of BankAccount like Account nummber,Currency,Account Name
         /// </summary>
         /// <param name="ctx">Context</param>
         /// <param name="field">C_BankAccount_ID</param>
-        /// <returns>Currency_ID</returns>
-        public int GetBankAcctCurrency(Ctx ctx, string field)
+        /// <returns>Details of Bank account</returns>
+        public Dictionary<String, Object> GetBankAcctCurrency(Ctx ctx, string field)
         {
-            int Currency_ID = Util.GetValueOfInt(DB.ExecuteScalar("SELECT C_Currency_ID FROM C_BankAccount WHERE C_BankAccount_ID = " + Util.GetValueOfInt(field), null, null));
-            return Currency_ID;
+            Dictionary<String, Object> retDic = null;
+            string sql = "SELECT C_Currency_ID,AccountNo,Name FROM C_BankAccount WHERE C_BankAccount_ID = " + Util.GetValueOfInt(field);
+            DataSet ds = DB.ExecuteDataset(sql, null, null);
+            if (ds != null && ds.Tables[0].Rows.Count > 0)
+            {
+                retDic = new Dictionary<string, object>();
+                retDic["C_Currency_ID"] = Util.GetValueOfInt(ds.Tables[0].Rows[0]["C_Currency_ID"]);
+                retDic["AccountNo"] = Util.GetValueOfDecimal(ds.Tables[0].Rows[0]["AccountNo"]);
+                retDic["Name"] = Util.GetValueOfString(ds.Tables[0].Rows[0]["Name"]);
+            }
+            return retDic;
         }
 
         /// <summary>

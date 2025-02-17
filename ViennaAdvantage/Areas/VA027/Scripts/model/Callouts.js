@@ -802,8 +802,13 @@
         this.setCalloutActive(true);
         var c_bankaccount_ID = value;
         try {
-            var currency = Util.getValueOfInt(VIS.dataContext.getJSONRecord("PDC/GetBankAcctCurrency", c_bankaccount_ID.toString()));
-            mTab.setValue("C_Currency_ID", currency);
+            var bankAccountDetails = VIS.dataContext.getJSONRecord("PDC/GetBankAcctCurrency", c_bankaccount_ID.toString());
+            if (bankAccountDetails != null) {
+                //VIS_427 Set the bank account details
+                mTab.setValue("C_Currency_ID", bankAccountDetails["C_Currency_ID"]);
+                mTab.setValue("VA027_AccountNo", bankAccountDetails["AccountNo"]);
+                mTab.setValue("VA027_AccountName", bankAccountDetails["Name"]);
+            }
         }
         catch (err) {
             this.log.severe(err.toString());
