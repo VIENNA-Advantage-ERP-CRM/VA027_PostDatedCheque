@@ -363,7 +363,7 @@ namespace ViennaAdvantage.Process
                                 //VIS_427 fixed code to add dot after last document number
                                 if (i == _ds.Tables[0].Rows.Count - 1)
                                 {
-                                    documentno += _payment.GetDocumentNo() + ".";
+                                    documentno += _payment.GetDocumentNo();
                                 }
                                 else
                                 {
@@ -490,7 +490,7 @@ namespace ViennaAdvantage.Process
                                     //VIS_427 fixed code to add dot after last document number
                                     if (i == _ds.Tables[0].Rows.Count - 1)
                                     {
-                                        documentno += _payment.GetDocumentNo() + ".";
+                                        documentno += _payment.GetDocumentNo();
                                     }
                                     else
                                     {

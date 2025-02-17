@@ -113,7 +113,7 @@ namespace ViennaAdvantage.Model
                 }
             }
             //VIS_427 17/02/2025 Set the account number to be the same as the post-dated check account number field. 
-            if (Util.GetValueOfDecimal(GetVA027_AccountNo()) == 0)
+            if (string.IsNullOrEmpty(Util.GetValueOfString(GetVA027_AccountNo())))
             {
                 SetVA027_AccountNo(pdc.GetVA027_AccountNo());
             }
