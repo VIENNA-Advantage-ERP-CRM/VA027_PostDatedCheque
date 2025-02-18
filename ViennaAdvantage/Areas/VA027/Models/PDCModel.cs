@@ -177,7 +177,7 @@ namespace VA027.Models
             {
                 retDic = new Dictionary<string, object>();
                 retDic["C_Currency_ID"] = Util.GetValueOfInt(ds.Tables[0].Rows[0]["C_Currency_ID"]);
-                retDic["AccountNo"] = Util.GetValueOfDecimal(ds.Tables[0].Rows[0]["AccountNo"]);
+                retDic["AccountNo"] = Util.GetValueOfString(ds.Tables[0].Rows[0]["AccountNo"]);
                 retDic["Name"] = Util.GetValueOfString(ds.Tables[0].Rows[0]["Name"]);
             }
             return retDic;
