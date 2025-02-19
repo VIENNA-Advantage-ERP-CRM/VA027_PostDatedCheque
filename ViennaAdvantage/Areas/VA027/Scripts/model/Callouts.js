@@ -183,7 +183,7 @@
                 if (GetInvoiceScheduleDetail != null) {
                     mTab.setValue("VA027_PayAmt", Util.getValueOfDecimal(GetInvoiceScheduleDetail["VA027_PayAmt"]));
                     mTab.setValue("VA009_PAYMENTMETHOD_ID", Util.getValueOfInt(GetInvoiceScheduleDetail["va009_paymentmethod_id"]));
-                    mTab.setValue("VA027_DISCOUNTAMT", _Util.getValueOfDecimal(GetInvoiceScheduleDetail["VA027_DISCOUNTAMT"]));
+                    mTab.setValue("VA027_DISCOUNTAMT", Util.getValueOfDecimal(GetInvoiceScheduleDetail["VA027_DISCOUNTAMT"]));
                     mTab.setValue("VA027_TRXDATE", Util.getValueOfDate(GetInvoiceScheduleDetail["VA027_TRXDATE"]));
                     mTab.setValue("DateAcct", Util.getValueOfDate(GetInvoiceScheduleDetail["DateAcct"]));
                 }
@@ -435,6 +435,7 @@
         var _trxDate = Util.getValueOfDate(mTab.getValue("VA027_TrxDate"));
         var _orderSchedule = Util.getValueOfInt(mTab.getValue("VA009_ORDERPAYSCHEDULE_ID"));
         var _invSchedule = Util.getValueOfInt(mTab.getValue("C_INVOICEPAYSCHEDULE_ID"));
+        var _writeOffAmt = Util.getValueOfInt(mTab.getValue("VA027_WriteoffAmt"));
         if (_orderSchedule != 0 || _invSchedule != 0) {
             try {
                 var paramString = _orderSchedule.toString() + ", " + _invSchedule.toString();
@@ -442,24 +443,68 @@
                 if (GetDiscountDateSchedule != null) {
                     var _payAmt = 0;
                     var _dueAmt = Util.getValueOfDecimal(GetDiscountDateSchedule["DUEAMT"]);
-                    var _discountAmt = Util.getValueOfDecimal(GetDiscountDateSchedule["DISCOUNT2"]);
-                    var _discount2 = Util.getValueOfDecimal(GetDiscountDateSchedule["VA027_DISCOUNTAMT"]);
+                    var _discount2 = Util.getValueOfDecimal(GetDiscountDateSchedule["DISCOUNT2"]);
+                    var _discountAmt = Util.getValueOfDecimal(GetDiscountDateSchedule["VA027_DISCOUNTAMT"]);
                     var _discountDate = Util.getValueOfDate(GetDiscountDateSchedule["DISCOUNTDATE"]);
                     var _discountDays = Util.getValueOfDate(GetDiscountDateSchedule["DISCOUNTDAYS2"]);
-
+                    //VIS_427 19/02/2025 get the currency of invoice for conversion
+                    var CurrencyTo = Util.getValueOfInt(GetDiscountDateSchedule["C_Currency_ID"]);
+                    var C_ConversionType_ID = Util.getValueOfInt(GetDiscountDateSchedule["C_ConversionType_ID"]);
                     if (_trxDate <= _discountDate) {
-                        _payAmt = _dueAmt - _discountAmt;
+                        _payAmt = _dueAmt - _discountAmt - _writeOffAmt;
                         mTab.setValue("VA027_PayAmt", _payAmt);
                         mTab.setValue("VA027_DiscountAmt", _discountAmt);
                     }
                     else if (_trxDate <= _discountDays) {
-                        _payAmt = _dueAmt - _discount2;
+                        _payAmt = _dueAmt - _discount2 - _writeOffAmt;
                         mTab.setValue("VA027_PayAmt", _payAmt);
                         mTab.setValue("VA027_DiscountAmt", _discount2);
                     }
                     else if (_trxDate > _discountDate || _trxDate > _discountDays) {
                         mTab.setValue("VA027_PayAmt", _dueAmt);
                         mTab.setValue("VA027_DiscountAmt", VIS.Env.ZERO);
+                        mTab.setValue("VA027_WriteoffAmt", VIS.Env.ZERO);
+                    }
+                    /*VIS_427 19/02/2025 When user change transaction date handled this code so that open amount should be converted according to currency
+                     and set in VA027_ConvertedAmount field*/
+                    var CurrencyFrom = mTab.getValue("C_Currency_ID");         
+                    var C_Currency_ID = Util.getValueOfInt(CurrencyFrom);
+                    var paramstr = C_Currency_ID.toString();
+                    var currency = VIS.dataContext.getJSONRecord("MCurrency/GetCurrency", paramstr);
+                    var precision = currency["StdPrecision"];
+                    var ConvDate = mTab.getValue("DateTrx");
+
+                    var AD_Client_ID = ctx.getContextAsInt(windowNo, "AD_Client_ID");
+                    var AD_Org_ID = ctx.getContextAsInt(windowNo, "AD_Org_ID");
+                    var currencyRate = VIS.Env.ONE;
+
+                    if (CurrencyTo == CurrencyFrom) {
+                        mTab.setValue("CurrencyRate", currencyRate);
+                        mTab.setValue("VA027_ConvertedAmount", _dueAmt);
+                    }
+                    else {
+                        if ((C_Currency_ID > 0 && CurrencyTo > 0 && C_Currency_ID != CurrencyTo) || colName == "C_Currency_ID") {
+                            this.log.fine("Currency To=" + CurrencyTo
+                                + ", Currency From=" + C_Currency_ID
+                                + ", Date=" + ConvDate + ", Type=" + C_ConversionType_ID);
+
+
+                            paramstring = CurrencyTo + "," + C_Currency_ID + "," + ConvDate + "," + C_ConversionType_ID + "," + AD_Client_ID + "," + AD_Org_ID;
+                            currencyRate = VIS.dataContext.getJSONRecord("MConversionRate/GetRate", paramstring);
+
+                            if (currencyRate == null || currencyRate.toString() == 0) {
+                                if (CurrencyTo == 0) {
+                                    return "";		//	no error message when no Invoice/Order is selected
+                                }
+                                this.setCalloutActive(false);
+                                mTab.setValue("C_Currency_ID", CurrencyTo);
+                                return "NoCurrencyConversion";
+                            }
+                            //
+                            mTab.setValue("CurrencyRate", currencyRate);
+                            _dueAmt = Util.getValueOfDecimal((_dueAmt * currencyRate).toFixed(precision));
+                            mTab.setValue("VA027_ConvertedAmount", _dueAmt);
+                        }
                     }
                 }
             }
@@ -654,7 +699,7 @@
             var CurrencyTo = null;
 
             try {
-                if (C_Invoice_ID != "") {
+                if (Util.getValueOfInt(C_Invoice_ID) != 0) {
                     //sql = "Select C_Currency_ID,C_ConversionType_ID from C_Invoice Where C_Invoice_ID = " + C_Invoice_ID;
                     //ds = VIS.DB.executeDataSet(sql.toString());
                     //if (ds != null && ds.getTables().length > 0) {
@@ -694,10 +739,13 @@
                     }
                     openAmt = mTab.getValue("VA027_PayAmt");
 
-                    //	Get Invoice Currency and Currency Type                   
-                    paramString = C_Invoice_ID.toString() + "," + C_InvoicePaySchedule_ID.toString() + "," + ts.toString();
+                    //	Get Invoice Currency and Currency Type 
+                    //VIS_427 changed the format of date parameter
+                    paramString = C_Invoice_ID.toString() + "," + C_InvoicePaySchedule_ID.toString() + "," + Globalize.format(Util.getValueOfDate(ts), "yyyy-MM-dd").toString();
                     var dr = VIS.dataContext.getJSONRecord("MPayment/GetInvoiceData", paramString);
                     if (dr != null) {
+                        //VIS_427 Get the invoice open amount in order to set it into VA027_ConvertedAmount field
+                        openAmt = Util.getValueOfDecimal(dr["invoiceOpen"]);
                         CurrencyTo = Util.getValueOfInt(dr["C_Currency_ID"]);
                         C_ConversionType_ID = Util.getValueOfInt(dr["C_ConversionType_ID"]);
                     }
@@ -751,10 +799,11 @@
                 var AD_Client_ID = ctx.getContextAsInt(windowNo, "AD_Client_ID");
                 var AD_Org_ID = ctx.getContextAsInt(windowNo, "AD_Org_ID");
                 var currencyRate = VIS.Env.ONE;
-
+                
                 if (CurrencyTo == CurrencyFrom) {
                     mTab.setValue("CurrencyRate", currencyRate);
-                    mTab.setValue("VA027_ConvertedAmount", mTab.getValue("VA027_PayAmt"));
+                    //here set openAmt in converted amount field because the converted amount field remains unchanged whether user change writeoff or discountAmt
+                    mTab.setValue("VA027_ConvertedAmount", openAmt);
                 }
                 else {
                     if ((C_Currency_ID > 0 && CurrencyTo > 0 && C_Currency_ID != CurrencyTo) || colName == "C_Currency_ID") {
