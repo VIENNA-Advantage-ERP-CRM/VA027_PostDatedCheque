@@ -690,7 +690,7 @@
                         C_InvoicePaySchedule_ID = mTab.getValue("C_InvoicePaySchedule_ID");
                     }
 
-                    var ts = mTab.getValue("DateTrx");
+                    var ts = mTab.getValue("VA027_TrxDate");
                     if (ts == null) {
                         ts = new Date();
                     }
@@ -749,7 +749,7 @@
                 paramString = C_Currency_ID.toString();
                 var currency = VIS.dataContext.getJSONRecord("MCurrency/GetCurrency", paramString);
                 var precision = currency["StdPrecision"];
-                var ConvDate = mTab.getValue("DateTrx");
+                var ConvDate = mTab.getValue("VA027_TrxDate");
 
                 var AD_Client_ID = ctx.getContextAsInt(windowNo, "AD_Client_ID");
                 var AD_Org_ID = ctx.getContextAsInt(windowNo, "AD_Org_ID");
