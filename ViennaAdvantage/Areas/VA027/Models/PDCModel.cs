@@ -110,8 +110,9 @@ namespace VA027.Models
         public Dictionary<String, Object> GetOrderData(Ctx ctx, string fields)
         {
             string[] paramValue = fields.Split(',');
-            bool countVA009 = Util.GetValueOfBool(paramValue[0]);
-            int C_Order_ID = Util.GetValueOfInt(paramValue[1]);
+            //bool countVA009 = Util.GetValueOfInt(paramValue[0]);
+            //VIS_427 Changed the paramenter  for  C_Order_ID because paramValue[0] has its value
+            int C_Order_ID = Util.GetValueOfInt(paramValue[0]);
             Dictionary<String, Object> retDic = null;
             string sql = "SELECT C_Currency_ID, C_ConversionType_ID FROM C_Order WHERE C_Order_ID = " + C_Order_ID;
 
