@@ -211,8 +211,9 @@ namespace VA027.Models
                 result["VA027_PayAmt"] = Util.GetValueOfDecimal(ds.Tables[0].Rows[0]["dueamt"]) - Util.GetValueOfDecimal(ds.Tables[0].Rows[0]["discountamt"]);
                 result["VA009_PAYMENTMETHOD_ID"] = Util.GetValueOfInt(ds.Tables[0].Rows[0]["va009_paymentmethod_id"]);
                 result["VA027_DISCOUNTAMT"] = Util.GetValueOfDecimal(ds.Tables[0].Rows[0]["discountamt"]);
-                result["VA027_TRXDATE"] = Util.GetValueOfDateTime(ds.Tables[0].Rows[0]["duedate"]);
-                result["DateAcct"] = Util.GetValueOfDateTime(ds.Tables[0].Rows[0]["duedate"]);
+                /*VIS_427 Get the Date instead of date time in order to set the correct date in fields*/
+                result["VA027_TRXDATE"] = Util.GetValueOfDateTime(ds.Tables[0].Rows[0]["duedate"]).Value.Date.ToString("yyyy-MM-dd");
+                result["DateAcct"] = Util.GetValueOfDateTime(ds.Tables[0].Rows[0]["duedate"]).Value.Date.ToString("yyyy-MM-dd");
             }
             return result;
         }
@@ -233,8 +234,9 @@ namespace VA027.Models
                 result["VA027_PayAmt"] = Util.GetValueOfDecimal(ds.Tables[0].Rows[0]["DUEAMT"]) - Util.GetValueOfDecimal(ds.Tables[0].Rows[0]["DISCOUNTAMT"]);
                 result["VA009_PAYMENTMETHOD_ID"] = Util.GetValueOfInt(ds.Tables[0].Rows[0]["VA009_PAYMENTMETHOD_ID"]);
                 result["VA027_DISCOUNTAMT"] = Util.GetValueOfDecimal(ds.Tables[0].Rows[0]["DISCOUNTAMT"]);
-                result["VA027_TRXDATE"] = Util.GetValueOfDateTime(ds.Tables[0].Rows[0]["DUEDATE"]);
-                result["DateAcct"] = Util.GetValueOfDateTime(ds.Tables[0].Rows[0]["DUEDATE"]);
+                /*VIS_427 Get the Date instead of date time in order to set the correct date in fields*/
+                result["VA027_TRXDATE"] = Util.GetValueOfDateTime(ds.Tables[0].Rows[0]["DUEDATE"]).Value.Date.ToString("yyyy-MM-dd");
+                result["DateAcct"] = Util.GetValueOfDateTime(ds.Tables[0].Rows[0]["DUEDATE"]).Value.Date.ToString("yyyy-MM-dd");
             }
             return result;
         }

@@ -124,6 +124,7 @@
             //modified by arpit**********
             if ((Util.getValueOfInt(mTab.getValue("VA009_ORDERPAYSCHEDULE_ID"))) == null || (Util.getValueOfInt(mTab.getValue("VA009_ORDERPAYSCHEDULE_ID"))) == 0) {
                 mTab.setValue("VA027_PayAmt", 0);
+                mTab.setValue("VA027_ConvertedAmount", 0);
                 this.setCalloutActive(false);
                 return "";
             }
@@ -160,6 +161,7 @@
             //modified by arpit**********
             if ((Util.getValueOfInt(mTab.getValue("C_INVOICEPAYSCHEDULE_ID"))) == null || (Util.getValueOfInt(mTab.getValue("C_INVOICEPAYSCHEDULE_ID"))) == 0) {
                 mTab.setValue("VA027_PayAmt", 0);
+                mTab.setValue("VA027_ConvertedAmount", 0);
                 this.setCalloutActive(false);
                 return "";
             }
