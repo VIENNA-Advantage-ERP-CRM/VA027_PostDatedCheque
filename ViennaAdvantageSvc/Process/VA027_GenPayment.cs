@@ -360,7 +360,15 @@ namespace ViennaAdvantage.Process
                                         continue;
                                     }
                                 }
-                                documentno += _payment.GetDocumentNo() + ",";
+                                //VIS_427 fixed code to add dot after last document number
+                                if (i == _ds.Tables[0].Rows.Count - 1)
+                                {
+                                    documentno += _payment.GetDocumentNo();
+                                }
+                                else
+                                {
+                                    documentno += _payment.GetDocumentNo() + ",";
+                                }
                             }
                         }
                     }
@@ -479,7 +487,15 @@ namespace ViennaAdvantage.Process
                                             continue;
                                         }
                                     }
-                                    documentno += _payment.GetDocumentNo() + ",";
+                                    //VIS_427 fixed code to add dot after last document number
+                                    if (i == _ds.Tables[0].Rows.Count - 1)
+                                    {
+                                        documentno += _payment.GetDocumentNo();
+                                    }
+                                    else
+                                    {
+                                        documentno += _payment.GetDocumentNo() + ",";
+                                    }
                                 }
                             }
                             else

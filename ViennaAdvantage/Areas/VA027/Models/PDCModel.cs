@@ -110,8 +110,9 @@ namespace VA027.Models
         public Dictionary<String, Object> GetOrderData(Ctx ctx, string fields)
         {
             string[] paramValue = fields.Split(',');
-            bool countVA009 = Util.GetValueOfBool(paramValue[0]);
-            int C_Order_ID = Util.GetValueOfInt(paramValue[1]);
+            //bool countVA009 = Util.GetValueOfInt(paramValue[0]);
+            //VIS_427 Changed the paramenter  for  C_Order_ID because paramValue[0] has its value
+            int C_Order_ID = Util.GetValueOfInt(paramValue[0]);
             Dictionary<String, Object> retDic = null;
             string sql = "SELECT C_Currency_ID, C_ConversionType_ID FROM C_Order WHERE C_Order_ID = " + C_Order_ID;
 
@@ -163,15 +164,24 @@ namespace VA027.Models
         }
 
         /// <summary>
-        /// Get currency of BankAccount
+        /// Get Details of BankAccount like Account nummber,Currency,Account Name
         /// </summary>
         /// <param name="ctx">Context</param>
         /// <param name="field">C_BankAccount_ID</param>
-        /// <returns>Currency_ID</returns>
-        public int GetBankAcctCurrency(Ctx ctx, string field)
+        /// <returns>Details of Bank account</returns>
+        public Dictionary<String, Object> GetBankAcctCurrency(Ctx ctx, string field)
         {
-            int Currency_ID = Util.GetValueOfInt(DB.ExecuteScalar("SELECT C_Currency_ID FROM C_BankAccount WHERE C_BankAccount_ID = " + Util.GetValueOfInt(field), null, null));
-            return Currency_ID;
+            Dictionary<String, Object> retDic = null;
+            string sql = "SELECT C_Currency_ID,AccountNo,Name FROM C_BankAccount WHERE C_BankAccount_ID = " + Util.GetValueOfInt(field);
+            DataSet ds = DB.ExecuteDataset(sql, null, null);
+            if (ds != null && ds.Tables[0].Rows.Count > 0)
+            {
+                retDic = new Dictionary<string, object>();
+                retDic["C_Currency_ID"] = Util.GetValueOfInt(ds.Tables[0].Rows[0]["C_Currency_ID"]);
+                retDic["AccountNo"] = Util.GetValueOfString(ds.Tables[0].Rows[0]["AccountNo"]);
+                retDic["Name"] = Util.GetValueOfString(ds.Tables[0].Rows[0]["Name"]);
+            }
+            return retDic;
         }
 
         /// <summary>
@@ -201,8 +211,9 @@ namespace VA027.Models
                 result["VA027_PayAmt"] = Util.GetValueOfDecimal(ds.Tables[0].Rows[0]["dueamt"]) - Util.GetValueOfDecimal(ds.Tables[0].Rows[0]["discountamt"]);
                 result["VA009_PAYMENTMETHOD_ID"] = Util.GetValueOfInt(ds.Tables[0].Rows[0]["va009_paymentmethod_id"]);
                 result["VA027_DISCOUNTAMT"] = Util.GetValueOfDecimal(ds.Tables[0].Rows[0]["discountamt"]);
-                result["VA027_TRXDATE"] = Util.GetValueOfDateTime(ds.Tables[0].Rows[0]["duedate"]);
-                result["DateAcct"] = Util.GetValueOfDateTime(ds.Tables[0].Rows[0]["duedate"]);
+                /*VIS_427 Get the Date instead of date time in order to set the correct date in fields*/
+                result["VA027_TRXDATE"] = Util.GetValueOfDateTime(ds.Tables[0].Rows[0]["duedate"]).Value.Date.ToString("yyyy-MM-dd");
+                result["DateAcct"] = Util.GetValueOfDateTime(ds.Tables[0].Rows[0]["duedate"]).Value.Date.ToString("yyyy-MM-dd");
             }
             return result;
         }
@@ -223,8 +234,9 @@ namespace VA027.Models
                 result["VA027_PayAmt"] = Util.GetValueOfDecimal(ds.Tables[0].Rows[0]["DUEAMT"]) - Util.GetValueOfDecimal(ds.Tables[0].Rows[0]["DISCOUNTAMT"]);
                 result["VA009_PAYMENTMETHOD_ID"] = Util.GetValueOfInt(ds.Tables[0].Rows[0]["VA009_PAYMENTMETHOD_ID"]);
                 result["VA027_DISCOUNTAMT"] = Util.GetValueOfDecimal(ds.Tables[0].Rows[0]["DISCOUNTAMT"]);
-                result["VA027_TRXDATE"] = Util.GetValueOfDateTime(ds.Tables[0].Rows[0]["DUEDATE"]);
-                result["DateAcct"] = Util.GetValueOfDateTime(ds.Tables[0].Rows[0]["DUEDATE"]);
+                /*VIS_427 Get the Date instead of date time in order to set the correct date in fields*/
+                result["VA027_TRXDATE"] = Util.GetValueOfDateTime(ds.Tables[0].Rows[0]["DUEDATE"]).Value.Date.ToString("yyyy-MM-dd");
+                result["DateAcct"] = Util.GetValueOfDateTime(ds.Tables[0].Rows[0]["DUEDATE"]).Value.Date.ToString("yyyy-MM-dd");
             }
             return result;
         }
@@ -243,12 +255,16 @@ namespace VA027.Models
 
             if (Util.GetValueOfInt(paramValue[0]) > 0)
             {
-                ds = DB.ExecuteDataset(@"SELECT VA009_PAYMENTMETHOD_ID,DUEAMT,DUEDATE,DISCOUNTDATE,DISCOUNTAMT,DISCOUNTDAYS2,DISCOUNT2 
-                                            FROM VA009_ORDERPAYSCHEDULE WHERE VA009_ORDERPAYSCHEDULE_ID=" + Util.GetValueOfInt(paramValue[0]), null, null);
+                //VIS_427 19/02/2025 Fixed query to fetch currency from order for conversion
+                ds = DB.ExecuteDataset(@"SELECT opay.VA009_PAYMENTMETHOD_ID,opay.DUEAMT,opay.DUEDATE,opay.DISCOUNTDATE,opay.DISCOUNTAMT,opay.DISCOUNTDAYS2,opay.DISCOUNT2, 
+                                            co.C_Currency_ID,co.C_ConversionType_ID FROM VA009_ORDERPAYSCHEDULE opay INNER JOIN C_Order co ON (co.C_Order_ID=opay.C_Order_ID) 
+                                            WHERE opay.VA009_ORDERPAYSCHEDULE_ID=" + Util.GetValueOfInt(paramValue[0]), null, null);
             }
             else {
-                ds = DB.ExecuteDataset(@"SELECT VA009_PAYMENTMETHOD_ID, DUEAMT, DUEDATE, DISCOUNTDATE, DISCOUNTAMT, DISCOUNTDAYS2, DISCOUNT2 
-                                        FROM C_INVOICEPAYSCHEDULE WHERE C_INVOICEPAYSCHEDULE_ID=" + Util.GetValueOfInt(paramValue[1]), null, null);
+                //VIS_427 19/02/2025 Fixed query to fetch currency from invoice for conversion
+                ds = DB.ExecuteDataset(@"SELECT cpay.VA009_PAYMENTMETHOD_ID, cpay.DUEAMT, cpay.DUEDATE, cpay.DISCOUNTDATE, cpay.DISCOUNTAMT, cpay.DISCOUNTDAYS2,cpay.DISCOUNT2,ci.C_Currency_ID,
+                                        ci.C_ConversionType_ID FROM C_INVOICEPAYSCHEDULE cpay INNER JOIN C_Invoice ci ON (ci.C_Invoice_ID=cpay.C_Invoice_ID)
+                                        WHERE cpay.C_INVOICEPAYSCHEDULE_ID=" + Util.GetValueOfInt(paramValue[1]), null, null);
             }
             if (ds != null && ds.Tables.Count > 0 && ds.Tables[0].Rows.Count > 0)
             {
@@ -258,6 +274,8 @@ namespace VA027.Models
                 result["DISCOUNTDATE"] = Util.GetValueOfDateTime(ds.Tables[0].Rows[0]["DISCOUNTDATE"]);
                 result["DISCOUNTDAYS2"] = Util.GetValueOfDateTime(ds.Tables[0].Rows[0]["DISCOUNTDAYS2"]);
                 result["VA009_PAYMENTMETHOD_ID"] = Util.GetValueOfInt(ds.Tables[0].Rows[0]["VA009_PAYMENTMETHOD_ID"]);
+                result["C_Currency_ID"] = Util.GetValueOfInt(ds.Tables[0].Rows[0]["C_Currency_ID"]);
+                result["C_ConversionType_ID"] = Util.GetValueOfInt(ds.Tables[0].Rows[0]["C_ConversionType_ID"]);
             }
             return result;
         }
