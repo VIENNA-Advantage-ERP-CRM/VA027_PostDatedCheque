@@ -195,14 +195,22 @@ namespace ViennaAdvantage.Model
                 return DocActionVariables.STATUS_INVALID;
 
             MDocType dt = MDocType.Get(GetCtx(), GetC_DocType_ID());
-            if (!MPeriod.IsOpen(GetCtx(), GetDateAcct(), dt.GetDocBaseType(), GetAD_Org_ID()))
+            /*VIS_427 DevOps ID 6473 14/04/2025 Get the value of date for which the period and non business day
+           check will be considered*/
+            DateTime? DateForPeriodCheck = GetDateAcct();
+            if (GetDocumentNo().Contains(REVERSE_INDICATOR)
+                && Get_ColumnIndex("VAS_ReversedDate") >= 0 && Get_Value("VAS_ReversedDate") != null)
+            {
+                DateForPeriodCheck = Util.GetValueOfDateTime(Get_Value("VAS_ReversedDate"));
+            }
+            if (!MPeriod.IsOpen(GetCtx(), DateForPeriodCheck, dt.GetDocBaseType(), GetAD_Org_ID()))
             {
                 _processMsg = "@PeriodClosed@";
                 return DocActionVariables.STATUS_INVALID;
             }
 
             // is Non Business Day?
-            if (MNonBusinessDay.IsNonBusinessDay(GetCtx(), GetDateAcct(), GetAD_Org_ID()))
+            if (MNonBusinessDay.IsNonBusinessDay(GetCtx(), DateForPeriodCheck, GetAD_Org_ID()))
             {
                 _processMsg = VAdvantage.Common.Common.NONBUSINESSDAY;
                 return DocActionVariables.STATUS_INVALID;
@@ -381,14 +389,18 @@ namespace ViennaAdvantage.Model
                 }
 
                 MDocType dt = MDocType.Get(GetCtx(), GetC_DocType_ID());
-                if (!MPeriod.IsOpen(GetCtx(), GetDateAcct(), dt.GetDocBaseType(), GetAD_Org_ID()))
+                /*VIS_427 DevOps ID 6473 14/04/2025 Get the value of date for which the period and non business day
+                check will be considered*/
+                DateTime? DateForPeriodCheck = Get_ColumnIndex("VAS_ReversedDate") >= 0 && Get_Value("VAS_ReversedDate") != null
+                ? Util.GetValueOfDateTime(Get_Value("VAS_ReversedDate")) : GetDateAcct();
+                if (!MPeriod.IsOpen(GetCtx(), DateForPeriodCheck, dt.GetDocBaseType(), GetAD_Org_ID()))
                 {
                     _processMsg = "@PeriodClosed@";
                     return false;
                 }
 
                 // is Non Business Day?
-                if (MNonBusinessDay.IsNonBusinessDay(GetCtx(), GetDateAcct(), GetAD_Org_ID()))
+                if (MNonBusinessDay.IsNonBusinessDay(GetCtx(), DateForPeriodCheck, GetAD_Org_ID()))
                 {
                     _processMsg = VAdvantage.Common.Common.NONBUSINESSDAY;
                     return false;
@@ -422,6 +434,11 @@ namespace ViennaAdvantage.Model
                 reversal.SetPosted(false);
                 reversal.SetVA027_Description(GetVA027_Description());
                 reversal.AddDescription("{->" + GetDocumentNo() + ")");
+                //VIS_427 14/04/2025 Set date with reversal date if column exist
+                if (Get_ColumnIndex("VAS_ReversedDate") >= 0 && Get_Value("VAS_ReversedDate") != null)
+                {
+                    reversal.Set_Value("VAS_ReversedDate", Util.GetValueOfDateTime(Get_Value("VAS_ReversedDate")));
+                }
                 if (reversal.Save(Get_Trx()))
                 {
                     DataSet ds = new DataSet();
