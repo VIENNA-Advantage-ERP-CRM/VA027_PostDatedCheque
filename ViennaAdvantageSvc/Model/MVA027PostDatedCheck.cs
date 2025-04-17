@@ -198,7 +198,7 @@ namespace ViennaAdvantage.Model
             /*VIS_427 DevOps ID 6473 14/04/2025 Get the value of date for which the period and non business day
            check will be considered*/
             DateTime? DateForPeriodCheck = GetDateAcct();
-            if (GetDocumentNo().Contains(REVERSE_INDICATOR)
+            if (Get_ColumnIndex("ReversalDoc_ID") >= 0 && Util.GetValueOfInt(Get_Value("ReversalDoc_ID")) > 0 && Get_ColumnIndex("IsReversal") >= 0 && Util.GetValueOfBool(Get_Value("IsReversal"))
                 && Get_ColumnIndex("VAS_ReversedDate") >= 0 && Get_Value("VAS_ReversedDate") != null)
             {
                 DateForPeriodCheck = Util.GetValueOfDateTime(Get_Value("VAS_ReversedDate"));
@@ -438,6 +438,16 @@ namespace ViennaAdvantage.Model
                 if (Get_ColumnIndex("VAS_ReversedDate") >= 0 && Get_Value("VAS_ReversedDate") != null)
                 {
                     reversal.Set_Value("VAS_ReversedDate", Util.GetValueOfDateTime(Get_Value("VAS_ReversedDate")));
+                }
+                // VIS_045, 17-Apr-2025, Set IsReversal true on Reversed Document
+                if (Get_ColumnIndex("IsReversal") >= 0)
+                {
+                    reversal.Set_Value("IsReversal", true);
+                }
+                // Set Original Record ID on Reversal Document
+                if (Get_ColumnIndex("ReversalDoc_ID") >= 0)
+                {
+                    reversal.Set_Value("ReversalDoc_ID", GetVA027_PostDatedCheck_ID());
                 }
                 if (reversal.Save(Get_Trx()))
                 {
